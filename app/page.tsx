@@ -1,5 +1,5 @@
 import { generateMetadata } from '@/utils/generateMetadata';
-import HomePage from './home/HomePage';
+import VaultPage from './home/content';
 
 export const metadata = generateMetadata({
   title: 'Monarch',
@@ -15,5 +15,5 @@ export const metadata = generateMetadata({
  * https://nextjs.org/docs/app/building-your-application/rendering/client-components
  */
 export default function Page() {
-  return <HomePage />;
+  return <VaultPage />;
 }
