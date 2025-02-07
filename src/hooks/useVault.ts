@@ -85,7 +85,7 @@ const graphqlFetcher = async (
   return result;
 };
 
-export const useVault = () => {
+export const useVault = (vaultAddress: string) => {
   return useQuery<VaultData>({
     queryKey: ['vault'],
     queryFn: async () => {

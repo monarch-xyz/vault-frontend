@@ -8,9 +8,5 @@ type ClientProvidersProps = {
 };
 
 export function ClientProviders({ children }: ClientProvidersProps) {
-  return (
-    <MarketsProvider>
-      {children}
-    </MarketsProvider>
-  );
+  return <MarketsProvider>{children}</MarketsProvider>;
 }

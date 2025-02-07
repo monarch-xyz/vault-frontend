@@ -1,5 +1,4 @@
 import { Metadata } from 'next';
-import MarketContent from './content';
 
 export const metadata: Metadata = {
   title: 'Monarch Vault',

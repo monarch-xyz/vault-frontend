@@ -1,19 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@nextui-org/react';
-import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { clsx } from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTheme } from 'next-themes';
-import { FaRegMoon } from 'react-icons/fa';
-import { FiSettings } from 'react-icons/fi';
-import { LuSunMedium } from 'react-icons/lu';
-import { RiBookLine, RiDiscordFill, RiGithubFill } from 'react-icons/ri';
-import { useAccount } from 'wagmi';
-import { EXTERNAL_LINKS } from '@/utils/external';
 import logo from '../../imgs/logo.png';
 import AccountConnect from './AccountConnect';
 
@@ -64,17 +54,6 @@ export function NavbarTitle() {
 }
 
 export function Navbar() {
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
-
   return (
     <nav className="bg-surface flex h-full w-full items-center justify-between rounded px-4">
       <NavbarTitle />
