@@ -6,6 +6,8 @@ import { formatBalance } from '@/utils/balance';
 import { useERC20Approval } from './useERC20Approval';
 import { vaultAbi } from '@/abis/vault';
 import { SupportedNetworks } from '@/utils/networks';
+import { toast } from 'react-toastify';
+
 export function useDepositVault(
   tokenAddress: Address | undefined,
   vaultAddress: Address | undefined,
@@ -14,8 +16,7 @@ export function useDepositVault(
   onSuccess?: () => void,
 ) {
   const { address: account, chainId } = useAccount();
-
-  const { switchChainAsync } = useSwitchChain()
+  const { switchChainAsync } = useSwitchChain();
 
   // Handle ERC20 approval
   const { isApproved, approve } = useERC20Approval({
@@ -24,8 +25,6 @@ export function useDepositVault(
     amount,
     tokenSymbol: 'USDC',
   });
-
-  console.log('chainId', chainId)
 
   // Handle deposit transaction
   const { isConfirming: isDepositing, sendTransactionAsync } = useTransactionWithToast({
@@ -53,21 +52,54 @@ export function useDepositVault(
         args: [amount, account],
       }) + messageHex as Hex,
     });
-  }, [account, vaultAddress, tokenAddress, amount, sendTransactionAsync]);
+  }, [account, vaultAddress, tokenAddress, amount, sendTransactionAsync, message]);
 
   const depositWithApproval = useCallback(async () => {
+    try {
+      if (!account) {
+        toast.error('Please connect your wallet');
+        return;
+      }
 
-    if (chainId !== SupportedNetworks.Base) {
-      await switchChainAsync({ chainId: SupportedNetworks.Base });
-      console.log('switched to base')
+      if (chainId !== SupportedNetworks.Base) {
+        try {
+          await switchChainAsync({ chainId: SupportedNetworks.Base });
+        } catch (error) {
+          toast.error('Failed to switch network to Base');
+          return;
+        }
+      }
+
+      if (!isApproved) {
+        try {
+          await approve();
+        } catch (error) {
+          if (error instanceof Error) {
+            if (error.message.includes('User rejected')) {
+              toast.error('Approval rejected by user');
+            } else {
+              toast.error('Failed to approve USDC');
+            }
+          } else {
+            toast.error('An unexpected error occurred during approval');
+          }
+          return;
+        }
+      }
+
+      await deposit();
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('User rejected')) {
+          toast.error('Transaction rejected by user');
+        } else {
+          toast.error(`Transaction failed: ${error.message}`);
+        }
+      } else {
+        toast.error('An unexpected error occurred');
+      }
     }
-
-
-    if (!isApproved) {
-      await approve();
-    }
-    await deposit();
-  }, [isApproved, approve, deposit]);
+  }, [account, chainId, switchChainAsync, isApproved, approve, deposit]);
 
   return {
     deposit: depositWithApproval,
