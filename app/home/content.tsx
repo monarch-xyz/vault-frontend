@@ -16,6 +16,12 @@ import { useState } from 'react';
 import { useDepositVault } from '@/hooks/useDepositVault';
 import { useLogStream, LogEntry } from '@/hooks/useLogStream';
 import { format } from 'date-fns';
+import { BiBrain } from 'react-icons/bi';
+import { BsChatDots } from 'react-icons/bs';
+import { AiOutlineDatabase } from 'react-icons/ai';
+import { Tooltip } from '@nextui-org/tooltip';
+import { Badge } from '@/components/common/Badge';
+import { FaRobot } from 'react-icons/fa';
 
 const USDC = {
   symbol: 'USDC',
@@ -87,29 +93,183 @@ function VaultInfoCard({ vault, vaultToken }: { vault: any; vaultToken: any }) {
   );
 }
 
-function LogMessage({ log }: { log: LogEntry }) {
-  const categoryColors = {
-    event: 'text-blue-500',
-    think: 'text-purple-500',
-    speak: 'text-green-500',
-    memory: 'text-yellow-500',
-    action: 'text-orange-500',
-    error: 'text-red-500',
-  };
+const categoryConfig = {
+  conversation: {
+    icon: BsChatDots,
+    label: 'Chat',
+    description: 'Agent\'s responses',
+    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
+    borderColor: 'border-green-100 dark:border-green-900',
+    iconColor: 'text-green-600 dark:text-green-400',
+  },
+  think: {
+    icon: BiBrain,
+    label: 'Thinking',
+    description: 'Agent\'s thought process',
+    bgColor: 'bg-purple-50/50 dark:bg-purple-950/30',
+    borderColor: 'border-purple-100 dark:border-purple-900',
+    iconColor: 'text-purple-600 dark:text-purple-400',
+  },
+  memory: {
+    icon: AiOutlineDatabase,
+    label: 'Memory',
+    description: 'Knowledge base',
+    bgColor: 'bg-blue-50/50 dark:bg-blue-950/30',
+    borderColor: 'border-blue-100 dark:border-blue-900',
+    iconColor: 'text-blue-600 dark:text-blue-400',
+  },
+} as const;
+
+type MessageDetails = {
+  from: 'admin' | 'agent' | 'user';
+  text: string;
+};
+
+function ChatMessage({ 
+  log,
+  isLast 
+}: { 
+  log: LogEntry;
+  isLast: boolean;
+}) {
+  const details = log.details as unknown as MessageDetails;
+  const isAgent = details.from === 'agent';
+  const isAdmin = details.from === 'admin';
 
   return (
-    <div className="border-b border-gray-100 pb-2 dark:border-gray-700">
-      <div className="flex items-center justify-between">
-        <span className={`text-xs font-medium ${categoryColors[log.category]}`}>
-          {log.category.toUpperCase()}
-        </span>
-        <span className="text-xs text-gray-500">
-          {format(new Date(log.timestamp), 'HH:mm:ss')}
-        </span>
+    <div className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'} ${!isLast ? 'mb-3' : ''}`}>
+      <div className="relative max-w-[85%]">
+        {/* Admin Badge */}
+        {isAdmin && (
+          <div className="absolute -top-2 right-0 z-10">
+            <Badge
+              variant="success"
+              size="sm"
+            >
+              ADMIN
+            </Badge>
+          </div>
+        )}
+
+        {/* Agent Badge */}
+        {isAgent && (
+          <div className="absolute -top-2 right-0 z-10">
+            <Badge
+              variant="default"
+              size="sm"
+              className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+            >
+              <FaRobot className="h-3 w-3" />
+            </Badge>
+          </div>
+        )}
+
+        {/* Message Bubble */}
+        <div
+          className={`rounded-lg border p-3 
+            ${isAgent 
+              ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/30' 
+              : 'border-gray-200 text-secondary dark:border-gray-700'
+            }`}
+        >
+          <div className="space-y-1">
+            <p className="text-sm whitespace-pre-wrap">{details.text}</p>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] text-gray-500">
+                {format(new Date(log.timestamp), 'HH:mm:ss')}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="mt-1">
-        <span className="text-sm font-medium">{log.topic}</span>
-        <p className="text-sm text-gray-600 dark:text-gray-400">{log.details}</p>
+    </div>
+  );
+}
+
+function CategorySection({ 
+  category,
+  logs,
+  isExpanded,
+  onToggle,
+}: { 
+  category: keyof typeof categoryConfig;
+  logs: LogEntry[];
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const config = categoryConfig[category];
+  const Icon = config.icon;
+  const filteredLogs = logs.filter(log => log.category === category);
+
+  return (
+    <div 
+      className={`rounded-lg border transition-all duration-300 ${config.bgColor} ${config.borderColor}
+        ${isExpanded ? 'h-[450px]' : 'h-[120px]'}`}
+    >
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center gap-2 border-b p-2 text-left hover:bg-black/5 dark:hover:bg-white/5"
+      >
+        <Icon className={`h-4 w-4 ${config.iconColor}`} />
+        <span className="font-medium text-sm">{config.label}</span>
+        <span className="ml-auto rounded-full bg-white/50 px-2 py-0.5 text-xs">
+          {filteredLogs.length}
+        </span>
+      </button>
+      <div className="custom-scrollbar h-[calc(100%-36px)] overflow-y-auto p-2">
+        {filteredLogs.length === 0 ? (
+          <div className="text-center text-sm text-gray-500">
+            No {config.label.toLowerCase()} activities yet
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {category === 'conversation' ? (
+              // Chat-style layout for conversation
+              <div className="flex flex-col justify-end h-full">
+                <div className="space-y-2">
+                  {filteredLogs
+                    .map((log, index, array) => (
+                      <ChatMessage 
+                        key={log.timestamp + index} 
+                        log={log}
+                        isLast={index === array.length - 1}
+                      />
+                    ))}
+                </div>
+              </div>
+            ) : (
+              // Regular layout for other categories
+              filteredLogs
+                .slice()
+                .reverse()
+                .map((log, index) => (
+                  <div 
+                    key={log.timestamp + index}
+                    className="rounded border border-white/50 bg-white/25 p-2 dark:border-black/10 dark:bg-black/10"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">
+                        {format(new Date(log.timestamp), 'HH:mm:ss')}
+                      </span>
+                    </div>
+                    <div className="mt-0.5">
+                      <span className="text-xs font-medium">{log.topic}</span>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                        {(() => {
+                          try {
+                            const parsed = JSON.parse(log.details);
+                            return typeof parsed === 'object' ? JSON.stringify(parsed, null, 2) : parsed;
+                          } catch (e) {
+                            return log.details;
+                          }
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -117,35 +277,67 @@ function LogMessage({ log }: { log: LogEntry }) {
 
 function ActivityFeed() {
   const { logs, isConnected, error } = useLogStream();
+  const [expandedCategory, setExpandedCategory] = useState<keyof typeof categoryConfig | null>(null);
+
+  const toggleCategory = (category: keyof typeof categoryConfig) => {
+    setExpandedCategory(expandedCategory === category ? null : category);
+  };
+
+  const categories = ['conversation', 'think', 'memory'] as const;
 
   return (
     <Card className="bg-surface h-[600px] p-4">
-      <CardHeader className="flex items-center justify-between text-lg">
-        <span>Activity Feed</span>
-        <div className="flex items-center gap-2">
-          <div
-            className={`h-2 w-2 rounded-full ${
-              isConnected ? 'bg-green-500' : 'bg-red-500'
-            }`}
-          />
-          <span className="text-xs text-gray-500">
-            {isConnected ? 'Connected' : 'Disconnected'}
-          </span>
+      <CardHeader className="flex flex-col gap-2 pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex gap-2">
+              {categories.map((category) => {
+                const config = categoryConfig[category];
+                const Icon = config.icon;
+                return (
+                  <button
+                    key={category}
+                    onClick={() => toggleCategory(category)}
+                    className={`flex items-center gap-1 rounded-lg px-2 py-1 text-sm transition-all
+                      ${expandedCategory === category 
+                        ? `${config.bgColor} ${config.iconColor}`
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                    title={`Focus on ${config.label}`}
+                  >
+                    <Icon className="h-4 w-4 text-secondary" />
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className={`h-2 w-2 rounded-full ${
+                  isConnected ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
+              <span className="text-xs text-gray-500">
+                {isConnected ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
+          </div>
         </div>
       </CardHeader>
+
       <CardBody className="p-0">
         {error ? (
           <div className="p-4 text-sm text-red-500">{error}</div>
         ) : (
-          <div className="custom-scrollbar h-[500px] space-y-4 overflow-y-auto px-4">
-            {logs.length === 0 ? (
-              <div className="text-sm text-gray-500">Waiting for activity...</div>
-            ) : (
-              logs
-                .slice()
-                .reverse()
-                .map((log, index) => <LogMessage key={log.timestamp + index} log={log} />)
-            )}
+          <div className="space-y-2 px-4">
+            {categories.map((category) => (
+              <CategorySection
+                key={category}
+                category={category}
+                logs={logs}
+                isExpanded={expandedCategory === null || expandedCategory === category}
+                onToggle={() => toggleCategory(category)}
+              />
+            ))}
           </div>
         )}
       </CardBody>

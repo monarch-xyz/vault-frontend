@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export type LogEntry = {
-  category: 'event' | 'think' | 'speak' | 'memory' | 'action' | 'error';
+  category: 'event' | 'think' | 'conversation' | 'memory' | 'action' | 'error';
   topic: string;
   details: string;
   timestamp: string;
