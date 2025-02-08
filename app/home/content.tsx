@@ -8,7 +8,6 @@ import Header from '@/components/layout/header/Header';
 import { useMarkets } from '@/contexts/MarketsContext';
 import { useVault } from '@/hooks/useVault';
 import { formatBalance } from '@/utils/balance';
-import { findToken } from '@/utils/tokens';
 import { useUserBalances } from '@/hooks/useUserBalances';
 import Input from '@/components/Input/Input';
 import { Button } from '@/components/common/Button';
@@ -219,16 +218,6 @@ function ThinkingMessage({ log }: { log: LogEntry }) {
       <div className="mb-3">
         <p className="text-sm text-purple-800 dark:text-purple-200">{details.thought}</p>
       </div>
-
-      {/* Supporting Data */}
-      {Object.entries(details.data).length > 0 && (
-        <div className="rounded border border-purple-200/50 bg-white/50 p-2 dark:border-purple-800/30 dark:bg-purple-950/50">
-          <div className="text-[10px] font-medium text-purple-700 dark:text-purple-300">Supporting Data:</div>
-          <div className="mt-1 space-y-1">
-            
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -473,7 +462,7 @@ function VaultContent() {
     <>
       <Header />
       <div className="container mx-auto px-6 py-8 font-zen">
-        <h1 className="mb-12 text-center text-2xl">WoWo Vault</h1>
+        <h1 className="mb-12 text-center text-2xl">Wowo Smart Vault</h1>
 
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column - Vault Info */}

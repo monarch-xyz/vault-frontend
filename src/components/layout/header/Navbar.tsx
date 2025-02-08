@@ -47,7 +47,7 @@ export function NavbarTitle() {
         className="text-center font-zen text-lg font-medium text-primary no-underline"
         aria-label="build-onchain-apps Github repository"
       >
-        Morpho AI Vault
+        Monarch M1
       </Link>
     </div>
   );
