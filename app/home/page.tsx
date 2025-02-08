@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Monarch Vault',
-  description: 'Monarch Vault',
+  title: 'Wowo',
+  description: 'Wowo in control',
 };
 
 export default function VaultPage() {

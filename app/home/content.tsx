@@ -14,6 +14,8 @@ import Input from '@/components/Input/Input';
 import { Button } from '@/components/common/Button';
 import { useState } from 'react';
 import { useDepositVault } from '@/hooks/useDepositVault';
+import { useLogStream, LogEntry } from '@/hooks/useLogStream';
+import { format } from 'date-fns';
 
 const USDC = {
   symbol: 'USDC',
@@ -85,15 +87,67 @@ function VaultInfoCard({ vault, vaultToken }: { vault: any; vaultToken: any }) {
   );
 }
 
+function LogMessage({ log }: { log: LogEntry }) {
+  const categoryColors = {
+    event: 'text-blue-500',
+    think: 'text-purple-500',
+    speak: 'text-green-500',
+    memory: 'text-yellow-500',
+    action: 'text-orange-500',
+    error: 'text-red-500',
+  };
+
+  return (
+    <div className="border-b border-gray-100 pb-2 dark:border-gray-700">
+      <div className="flex items-center justify-between">
+        <span className={`text-xs font-medium ${categoryColors[log.category]}`}>
+          {log.category.toUpperCase()}
+        </span>
+        <span className="text-xs text-gray-500">
+          {format(new Date(log.timestamp), 'HH:mm:ss')}
+        </span>
+      </div>
+      <div className="mt-1">
+        <span className="text-sm font-medium">{log.topic}</span>
+        <p className="text-sm text-gray-600 dark:text-gray-400">{log.details}</p>
+      </div>
+    </div>
+  );
+}
+
 function ActivityFeed() {
+  const { logs, isConnected, error } = useLogStream();
+
   return (
     <Card className="bg-surface h-[600px] p-4">
-      <CardHeader className="text-lg">Activity Feed</CardHeader>
-      <CardBody>
-        <div className="space-y-4">
-          <div className="text-sm text-gray-500">Recent transactions and events will appear here...</div>
-          {/* Add activity feed items here */}
+      <CardHeader className="flex items-center justify-between text-lg">
+        <span>Activity Feed</span>
+        <div className="flex items-center gap-2">
+          <div
+            className={`h-2 w-2 rounded-full ${
+              isConnected ? 'bg-green-500' : 'bg-red-500'
+            }`}
+          />
+          <span className="text-xs text-gray-500">
+            {isConnected ? 'Connected' : 'Disconnected'}
+          </span>
         </div>
+      </CardHeader>
+      <CardBody className="p-0">
+        {error ? (
+          <div className="p-4 text-sm text-red-500">{error}</div>
+        ) : (
+          <div className="custom-scrollbar h-[500px] space-y-4 overflow-y-auto px-4">
+            {logs.length === 0 ? (
+              <div className="text-sm text-gray-500">Waiting for activity...</div>
+            ) : (
+              logs
+                .slice()
+                .reverse()
+                .map((log, index) => <LogMessage key={log.timestamp + index} log={log} />)
+            )}
+          </div>
+        )}
       </CardBody>
     </Card>
   );
@@ -190,7 +244,7 @@ function VaultContent() {
     <>
       <Header />
       <div className="container mx-auto px-6 py-8 font-zen">
-        <h1 className="mb-12 text-center text-2xl">Monarch Vault</h1>
+        <h1 className="mb-12 text-center text-2xl">WoWo Vault</h1>
 
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column - Vault Info */}
