@@ -186,37 +186,90 @@ function ChatMessage({
   );
 }
 
+function ActivityFeed() {
+  const { logs, isConnected, error } = useLogStream();
+  const [selectedCategory, setSelectedCategory] = useState<keyof typeof categoryConfig>('conversation');
+
+  const categories = ['conversation', 'think', 'memory'] as const;
+
+  return (
+    <Card className="bg-surface h-[600px] p-4">
+      <CardHeader className="flex flex-col gap-2 pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex gap-2">
+              {categories.map((category) => {
+                const config = categoryConfig[category];
+                const Icon = config.icon;
+                const isSelected = selectedCategory === category;
+                return (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm transition-all
+                      ${isSelected 
+                        ? `${config.bgColor} ${config.iconColor}` 
+                        : 'text-secondary hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
+                    title={config.description}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden sm:inline ml-1">{config.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className={`h-2 w-2 rounded-full ${
+                  isConnected ? 'bg-green-500' : 'bg-red-500'
+                }`}
+              />
+              <span className="text-xs text-gray-500">
+                {isConnected ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardHeader>
+
+      <CardBody className="p-0">
+        {error ? (
+          <div className="p-4 text-sm text-red-500">{error}</div>
+        ) : (
+          <div className="h-full px-4">
+            <CategorySection
+              key={selectedCategory}
+              category={selectedCategory}
+              logs={logs}
+              isExpanded={true}
+              onToggle={() => {}} // No longer needed
+            />
+          </div>
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
 function CategorySection({ 
   category,
   logs,
   isExpanded,
-  onToggle,
 }: { 
   category: keyof typeof categoryConfig;
   logs: LogEntry[];
   isExpanded: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
 }) {
   const config = categoryConfig[category];
-  const Icon = config.icon;
   const filteredLogs = logs.filter(log => log.category === category);
 
   return (
     <div 
-      className={`rounded-lg border transition-all duration-300 ${config.bgColor} ${config.borderColor}
-        ${isExpanded ? 'h-[450px]' : 'h-[120px]'}`}
+      className={`h-full rounded-lg border transition-all duration-300 ${config.bgColor} ${config.borderColor}`}
     >
-      <button
-        onClick={onToggle}
-        className="flex w-full items-center gap-2 border-b p-2 text-left hover:bg-black/5 dark:hover:bg-white/5"
-      >
-        <Icon className={`h-4 w-4 ${config.iconColor}`} />
-        <span className="font-medium text-sm">{config.label}</span>
-        <span className="ml-auto rounded-full bg-white/50 px-2 py-0.5 text-xs">
-          {filteredLogs.length}
-        </span>
-      </button>
-      <div className="custom-scrollbar h-[calc(100%-36px)] overflow-y-auto p-2">
+      <div className="custom-scrollbar h-full overflow-y-auto p-3">
         {filteredLogs.length === 0 ? (
           <div className="text-center text-sm text-gray-500">
             No {config.label.toLowerCase()} activities yet
@@ -272,76 +325,6 @@ function CategorySection({
         )}
       </div>
     </div>
-  );
-}
-
-function ActivityFeed() {
-  const { logs, isConnected, error } = useLogStream();
-  const [expandedCategory, setExpandedCategory] = useState<keyof typeof categoryConfig | null>(null);
-
-  const toggleCategory = (category: keyof typeof categoryConfig) => {
-    setExpandedCategory(expandedCategory === category ? null : category);
-  };
-
-  const categories = ['conversation', 'think', 'memory'] as const;
-
-  return (
-    <Card className="bg-surface h-[600px] p-4">
-      <CardHeader className="flex flex-col gap-2 pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex gap-2">
-              {categories.map((category) => {
-                const config = categoryConfig[category];
-                const Icon = config.icon;
-                return (
-                  <button
-                    key={category}
-                    onClick={() => toggleCategory(category)}
-                    className={`flex items-center gap-1 rounded-lg px-2 py-1 text-sm transition-all
-                      ${expandedCategory === category 
-                        ? `${config.bgColor} ${config.iconColor}`
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                      }`}
-                    title={`Focus on ${config.label}`}
-                  >
-                    <Icon className="h-4 w-4 text-secondary" />
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex items-center gap-2">
-              <div
-                className={`h-2 w-2 rounded-full ${
-                  isConnected ? 'bg-green-500' : 'bg-red-500'
-                }`}
-              />
-              <span className="text-xs text-gray-500">
-                {isConnected ? 'Connected' : 'Disconnected'}
-              </span>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardBody className="p-0">
-        {error ? (
-          <div className="p-4 text-sm text-red-500">{error}</div>
-        ) : (
-          <div className="space-y-2 px-4">
-            {categories.map((category) => (
-              <CategorySection
-                key={category}
-                category={category}
-                logs={logs}
-                isExpanded={expandedCategory === null || expandedCategory === category}
-                onToggle={() => toggleCategory(category)}
-              />
-            ))}
-          </div>
-        )}
-      </CardBody>
-    </Card>
   );
 }
 
