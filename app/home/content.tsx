@@ -19,7 +19,6 @@ import { format } from 'date-fns';
 import { BiBrain } from 'react-icons/bi';
 import { BsChatDots } from 'react-icons/bs';
 import { AiOutlineDatabase } from 'react-icons/ai';
-import { Tooltip } from '@nextui-org/tooltip';
 import { Badge } from '@/components/common/Badge';
 import { FaRobot } from 'react-icons/fa';
 
@@ -32,7 +31,7 @@ const USDC = {
 
 const vaultAddress = '0x346aac1e83239db6a6cb760e95e13258ad3d1a6d';
 
-function VaultInfoCard({ vault, vaultToken }: { vault: any; vaultToken: any }) {
+function VaultInfoCard({ vault }: { vault: any }) {
   const { markets } = useMarkets();
 
   return (
@@ -43,22 +42,22 @@ function VaultInfoCard({ vault, vaultToken }: { vault: any; vaultToken: any }) {
           <div className="flex items-center justify-between">
             <span className="text-gray-500">Asset:</span>
             <div className="flex items-center">
-              {vaultToken?.img && (
-                <Image
-                  src={vaultToken.img}
-                  alt={vaultToken.symbol}
-                  width={20}
-                  height={20}
-                  className="mr-2"
-                />
-              )}
-              <span>{vaultToken?.symbol}</span>
+              
+              <Image
+                src={USDC.img}
+                alt={USDC.symbol}
+                width={20}
+                height={20}
+                className="mr-2"
+              />
+              
+              <span>USDC</span>
             </div>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-500">Total Deposits:</span>
             <span>
-              {formatBalance(BigInt(vault.state.totalAssets), vault.asset.decimals)} {vaultToken?.symbol}
+              {formatBalance(BigInt(vault.state.totalAssets), vault.asset.decimals)} {'USDC'}
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -125,6 +124,12 @@ type MessageDetails = {
   text: string;
 };
 
+type ThinkingDetails = {
+  type: string;
+  thought: string;
+  data: Record<string, string>;
+};
+
 function ChatMessage({ 
   log,
   isLast 
@@ -182,6 +187,48 @@ function ChatMessage({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ThinkingMessage({ log }: { log: LogEntry }) {
+  let details: ThinkingDetails;
+  if (typeof log.details === 'string') {
+    details = JSON.parse(log.details) as ThinkingDetails;
+  } else {
+    details = log.details as ThinkingDetails;
+  }
+
+  return (
+    <div className="rounded-lg border border-purple-200 bg-purple-50/30 p-3 dark:border-purple-800/50 dark:bg-purple-900/10">
+      {/* Thinking Type Badge */}
+      <div className="mb-2 flex items-center gap-2">
+        <Badge
+          variant="default"
+          size="sm"
+          className="bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300"
+        >
+          {details.type}
+        </Badge>
+        <span className="text-[10px] text-gray-500">
+          {format(new Date(log.timestamp), 'HH:mm:ss')}
+        </span>
+      </div>
+
+      {/* Main Thought */}
+      <div className="mb-3">
+        <p className="text-sm text-purple-800 dark:text-purple-200">{details.thought}</p>
+      </div>
+
+      {/* Supporting Data */}
+      {Object.entries(details.data).length > 0 && (
+        <div className="rounded border border-purple-200/50 bg-white/50 p-2 dark:border-purple-800/30 dark:bg-purple-950/50">
+          <div className="text-[10px] font-medium text-purple-700 dark:text-purple-300">Supporting Data:</div>
+          <div className="mt-1 space-y-1">
+            
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -275,7 +322,7 @@ function CategorySection({
             No {config.label.toLowerCase()} activities yet
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {category === 'conversation' ? (
               // Chat-style layout for conversation
               <div className="flex flex-col justify-end h-full">
@@ -290,8 +337,16 @@ function CategorySection({
                     ))}
                 </div>
               </div>
+            ) : category === 'think' ? (
+              // Thinking layout
+              filteredLogs
+                .slice()
+                .reverse()
+                .map((log, index) => (
+                  <ThinkingMessage key={log.timestamp + index} log={log} />
+                ))
             ) : (
-              // Regular layout for other categories
+              // Regular layout for memory category
               filteredLogs
                 .slice()
                 .reverse()
@@ -313,7 +368,8 @@ function CategorySection({
                             const parsed = JSON.parse(log.details);
                             return typeof parsed === 'object' ? JSON.stringify(parsed, null, 2) : parsed;
                           } catch (e) {
-                            return log.details;
+                            console.error('Error parsing log details:', e);
+                            return log.details.toString();
                           }
                         })()}
                       </p>
@@ -413,8 +469,6 @@ function VaultContent() {
     return <div className="text-center">Vault data not available</div>;
   }
 
-  const vaultToken = findToken(vault.asset.id, 8453);
-
   return (
     <>
       <Header />
@@ -424,7 +478,7 @@ function VaultContent() {
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column - Vault Info */}
           <div className="col-span-3">
-            <VaultInfoCard vault={vault} vaultToken={vaultToken} />
+            <VaultInfoCard vault={vault} />
           </div>
 
           {/* Middle Column - Activity Feed */}
