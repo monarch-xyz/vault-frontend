@@ -40,18 +40,19 @@ function VaultInfoCard({ vault }: { vault: any }) {
 
   return (
     <Card className="bg-surface h-[600px] p-4">
-      <CardHeader className="flex items-center justify-between text-lg">
-        <span>Vault Overview</span>
+      <CardHeader className="flex items-center justify-between">
+        <span className="text-base font-medium">Vault Overview</span>
         <div className="flex items-center gap-2">
           <button
             onClick={() => refetch()}
-            className={`rounded-full p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all
+            className={`rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 transition-all
               ${isRefetching ? 'animate-spin' : ''}`}
             disabled={isRefetching}
+            title="Refresh vault data"
           >
-            <IoMdRefresh className="h-4 w-4" />
+            <IoMdRefresh className="h-3.5 w-3.5" />
           </button>
-          <span className="text-xs text-gray-500">
+          <span className="text-[10px] text-gray-400">
             Updated {format(new Date(dataUpdatedAt), 'HH:mm:ss')}
           </span>
         </div>
@@ -185,7 +186,7 @@ function ChatMessage({
             >
               <div className="flex items-center gap-1">
                 <FaRobot className="h-3 w-3" />
-                <span className="text-[10px]">Agent</span>
+                <span className="text-[10px]">Wowo</span>
               </div>
             </Badge>
           ) : isAdmin ? (
