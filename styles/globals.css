@@ -1,4 +1,9 @@
 /* Custom scrollbar styling */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -30,4 +35,44 @@
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Base scrollbar styles */
+.custom-scrollbar {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  position: relative;
+}
+
+/* Hide default WebKit scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom overlay scrollbar */
+.custom-scrollbar {
+  position: relative;
+}
+
+.custom-scrollbar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.custom-scrollbar:hover::after {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+/* Dark mode */
+.dark .custom-scrollbar:hover::after {
+  background-color: rgba(255, 255, 255, 0.2);
 } 

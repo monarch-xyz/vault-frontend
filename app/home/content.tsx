@@ -23,6 +23,7 @@ import { FaRobot } from 'react-icons/fa';
 import { Hex } from 'viem';
 import { Tooltip } from '@nextui-org/tooltip';
 import { TooltipContent } from '@/components/TooltipContent';
+import { IoMdRefresh } from 'react-icons/io';
 
 const USDC = {
   symbol: 'USDC',
@@ -35,15 +36,25 @@ const vaultAddress = '0x346aac1e83239db6a6cb760e95e13258ad3d1a6d';
 
 function VaultInfoCard({ vault }: { vault: any }) {
   const { markets } = useMarkets();
-  const { dataUpdatedAt } = useVault(vaultAddress);
+  const { dataUpdatedAt, refetch, isRefetching } = useVault(vaultAddress);
 
   return (
     <Card className="bg-surface h-[600px] p-4">
       <CardHeader className="flex items-center justify-between text-lg">
         <span>Vault Overview</span>
-        <span className="text-xs text-gray-500">
-          Updated {format(new Date(dataUpdatedAt), 'HH:mm:ss')}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => refetch()}
+            className={`rounded-full p-1 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all
+              ${isRefetching ? 'animate-spin' : ''}`}
+            disabled={isRefetching}
+          >
+            <IoMdRefresh className="h-4 w-4" />
+          </button>
+          <span className="text-xs text-gray-500">
+            Updated {format(new Date(dataUpdatedAt), 'HH:mm:ss')}
+          </span>
+        </div>
       </CardHeader>
       <CardBody className="space-y-6">
         <div className="space-y-4 text-sm">
@@ -163,51 +174,45 @@ function ChatMessage({
   const isAdmin = details.from === 'admin';
 
   return (
-    <div className={`flex flex-col ${isAgent ? 'items-end' : 'items-start'} ${!isLast ? 'mb-3' : ''}`}>
-      <div className="relative max-w-[85%]">
-        {/* Admin Badge */}
-        {isAdmin && (
-          <div className="absolute -top-2 right-0 z-10">
+    <div className="rounded-lg border border-green-200 bg-green-50/30 p-3 dark:border-green-800/50 dark:bg-green-900/10">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {isAgent ? (
+            <Badge
+              variant="default"
+              size="sm"
+              className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+            >
+              <div className="flex items-center gap-1">
+                <FaRobot className="h-3 w-3" />
+                <span className="text-[10px]">Agent</span>
+              </div>
+            </Badge>
+          ) : isAdmin ? (
             <Badge
               variant="success"
               size="sm"
             >
               ADMIN
             </Badge>
-          </div>
-        )}
-
-        {/* Agent Badge */}
-        {isAgent && (
-          <div className="absolute -top-2 right-0 z-10">
+          ) : (
             <Badge
               variant="default"
               size="sm"
               className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
             >
-              <FaRobot className="h-3 w-3" />
+              USER
             </Badge>
-          </div>
-        )}
-
-        {/* Message Bubble */}
-        <div
-          className={`rounded-lg border p-3 
-            ${isAgent 
-              ? 'border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-950/30' 
-              : 'border-gray-200 text-secondary dark:border-gray-700'
-            }`}
-        >
-          <div className="space-y-1">
-            <p className="text-sm whitespace-pre-wrap">{details.text}</p>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] text-gray-500">
-                {format(new Date(log.timestamp), 'HH:mm:ss')}
-              </span>
-            </div>
-          </div>
+          )}
         </div>
+        <span className="text-[10px] text-gray-500">
+          {format(new Date(log.timestamp), 'HH:mm:ss')}
+        </span>
       </div>
+
+      <p className="text-sm text-green-800 dark:text-green-200 whitespace-pre-wrap">
+        {details.text}
+      </p>
     </div>
   );
 }
@@ -275,7 +280,7 @@ function MemoryMessage({ log }: { log: LogEntry }) {
 }
 
 function ActivityFeed() {
-  const { logs, isConnected, error } = useLogStream();
+  const { logs, isConnected, error, reconnect } = useLogStream();
   const [selectedCategory, setSelectedCategory] = useState<keyof typeof categoryConfig>('conversation');
 
   const categories = ['conversation', 'think', 'memory'] as const;
@@ -316,12 +321,20 @@ function ActivityFeed() {
               <span className="text-xs text-gray-500">
                 {isConnected ? 'Connected' : 'Disconnected'}
               </span>
+              {!isConnected && (
+                <button
+                  onClick={reconnect}
+                  className="ml-2 rounded-lg bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20 transition-colors"
+                >
+                  Reconnect
+                </button>
+              )}
             </div>
           </div>
         </div>
       </CardHeader>
 
-      <CardBody className="p-0">
+      <CardBody className="custom-scrollbar p-0 overflow-y-auto pr-[22px]">
         {error ? (
           <div className="p-4 text-sm text-red-500">{error}</div>
         ) : (
@@ -331,7 +344,7 @@ function ActivityFeed() {
               category={selectedCategory}
               logs={logs}
               isExpanded={true}
-              onToggle={() => {}} // No longer needed
+              onToggle={() => {}}
             />
           </div>
         )}
@@ -354,9 +367,7 @@ function CategorySection({
   const filteredLogs = logs.filter(log => log.category === category);
 
   return (
-    <div 
-      className={`h-full rounded-lg border transition-all duration-300 ${config.bgColor} ${config.borderColor}`}
-    >
+    <div className={`h-full rounded-lg border transition-all duration-300 ${config.bgColor} ${config.borderColor}`}>
       <Tooltip
         content={<TooltipContent
           title={config.label}
@@ -373,50 +384,50 @@ function CategorySection({
       </Tooltip>
 
       <div className="h-[calc(100%-36px)] overflow-hidden">
-        <div className="custom-scrollbar h-full overflow-y-auto px-3 [mask-image:linear-gradient(to_bottom,transparent,black_8px,black_calc(100%-8px),transparent)]">
-          <div className="py-3">
-            {filteredLogs.length === 0 ? (
-              <div className="flex h-full flex-col items-center justify-center space-y-2 text-center">
-                <config.icon className={`h-8 w-8 ${config.iconColor} opacity-40`} />
-                <div className="text-sm text-gray-500">
-                  {config.emptyMessage}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {category === 'conversation' ? (
-                  // Chat-style layout for conversation
-                  <div className="flex flex-col justify-end h-full">
-                    <div className="space-y-2">
-                      {filteredLogs
-                        .map((log, index, array) => (
-                          <ChatMessage 
-                            key={log.timestamp + index} 
-                            log={log}
-                            isLast={index === array.length - 1}
-                          />
-                        ))}
-                    </div>
+        <div className="custom-scrollbar h-full overflow-y-auto pr-[22px]">
+          <div className="px-3">
+            <div className="py-3">
+              {filteredLogs.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center space-y-2 text-center">
+                  <config.icon className={`h-8 w-8 ${config.iconColor} opacity-40`} />
+                  <div className="text-sm text-gray-500">
+                    {config.emptyMessage}
                   </div>
-                ) : category === 'think' ? (
-                  // Thinking layout
-                  filteredLogs
-                    .slice()
-                    .reverse()
-                    .map((log, index) => (
-                      <ThinkingMessage key={log.timestamp + index} log={log} />
-                    ))
-                ) : (
-                  // Memory layout
-                  filteredLogs
-                    .slice()
-                    .reverse()
-                    .map((log, index) => (
-                      <MemoryMessage key={log.timestamp + index} log={log} />
-                    ))
-                )}
-              </div>
-            )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {category === 'conversation' ? (
+                    // Chat-style layout for conversation
+                    filteredLogs
+                      .slice()
+                      .reverse()
+                      .map((log, index, array) => (
+                        <ChatMessage 
+                          key={log.timestamp + index} 
+                          log={log}
+                          isLast={index === array.length - 1}
+                        />
+                      ))
+                  ) : category === 'think' ? (
+                    // Thinking layout
+                    filteredLogs
+                      .slice()
+                      .reverse()
+                      .map((log, index) => (
+                        <ThinkingMessage key={log.timestamp + index} log={log} />
+                      ))
+                  ) : (
+                    // Memory layout
+                    filteredLogs
+                      .slice()
+                      .reverse()
+                      .map((log, index) => (
+                        <MemoryMessage key={log.timestamp + index} log={log} />
+                      ))
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

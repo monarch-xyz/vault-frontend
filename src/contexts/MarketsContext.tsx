@@ -8,6 +8,7 @@ import {
   useEffect,
   useState,
   useMemo,
+  useRef,
 } from 'react';
 import { marketsQuery } from '@/graphql/queries';
 import useLiquidations from '@/hooks/useLiquidations';
@@ -38,11 +39,14 @@ type MarketResponse = {
   };
 };
 
+const POLLING_INTERVAL = 30000; // 30 seconds
+
 export function MarketsProvider({ children }: MarketsProviderProps) {
   const [loading, setLoading] = useState(true);
   const [isRefetching, setIsRefetching] = useState(false);
   const [markets, setMarkets] = useState<Market[]>([]);
   const [error, setError] = useState<unknown | null>(null);
+  const pollingTimerRef = useRef<NodeJS.Timeout>();
 
   const {
     loading: liquidationsLoading,
@@ -93,6 +97,7 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
         setMarkets(processedMarkets);
       } catch (_error) {
         setError(_error);
+        console.error('Error fetching markets:', _error);
       } finally {
         if (isRefetch) {
           setIsRefetching(false);
@@ -104,10 +109,26 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
     [liquidatedMarketIds],
   );
 
+  // Set up polling
   useEffect(() => {
+    // Initial fetch
     if (!liquidationsLoading && markets.length === 0) {
       fetchMarkets().catch(console.error);
     }
+
+    // Set up periodic polling
+    pollingTimerRef.current = setInterval(() => {
+      if (!liquidationsLoading) {
+        fetchMarkets(true).catch(console.error);
+      }
+    }, POLLING_INTERVAL);
+
+    // Cleanup
+    return () => {
+      if (pollingTimerRef.current) {
+        clearInterval(pollingTimerRef.current);
+      }
+    };
   }, [liquidationsLoading, fetchMarkets]);
 
   const refetch = useCallback(
@@ -119,10 +140,20 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
   );
 
   const refresh = useCallback(async () => {
+    // Clear existing polling
+    if (pollingTimerRef.current) {
+      clearInterval(pollingTimerRef.current);
+    }
+
     setLoading(true);
     setMarkets([]);
     try {
       await fetchMarkets();
+      
+      // Restart polling after manual refresh
+      pollingTimerRef.current = setInterval(() => {
+        fetchMarkets(true).catch(console.error);
+      }, POLLING_INTERVAL);
     } catch (_error) {
       console.error('Failed to refresh markets:', _error);
     }
@@ -131,7 +162,6 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
   const isLoading = loading || liquidationsLoading;
   const combinedError = error || liquidationsError;
 
-  // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo(
     () => ({
       markets,
