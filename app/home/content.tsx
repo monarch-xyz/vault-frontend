@@ -525,7 +525,7 @@ function VaultContent() {
     <>
       <Header />
       <div className="container mx-auto px-6 py-8 font-zen">
-        <h1 className="mb-12 text-center text-2xl">Wowo - Your Lending Agent</h1>
+        <h1 className="mb-12 text-center text-2xl">Wowo Smart Vault</h1>
 
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column - Vault Info */}

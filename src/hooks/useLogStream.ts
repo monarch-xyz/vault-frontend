@@ -7,7 +7,10 @@ export type LogEntry = {
   timestamp: string;
 };
 
-export function useLogStream(wsUrl: string = 'ws://localhost:8000/ws') {
+// Use environment variable with fallback to local development URL
+const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws';
+
+export function useLogStream() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
