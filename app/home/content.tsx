@@ -1,7 +1,17 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardHeader, CardBody } from '@nextui-org/card';
+import { Tooltip } from '@nextui-org/tooltip';
+import { format } from 'date-fns';
 import Image from 'next/image';
+import { AiOutlineDatabase } from 'react-icons/ai';
+import { BiBrain } from 'react-icons/bi';
+import { BsChatDots } from 'react-icons/bs';
+import { FaRobot } from 'react-icons/fa';
+import { Hex } from 'viem';
+import { Badge } from '@/components/common/Badge';
+import { Button } from '@/components/common/Button';
 import { MarketInfoBlockCompact } from '@/components/common/MarketInfoBlock';
 import { Spinner } from '@/components/common/Spinner';
 import Header from '@/components/layout/header/Header';
@@ -10,18 +20,8 @@ import { useVault } from '@/hooks/useVault';
 import { formatBalance } from '@/utils/balance';
 import { useUserBalances } from '@/hooks/useUserBalances';
 import Input from '@/components/Input/Input';
-import { Button } from '@/components/common/Button';
-import { useState } from 'react';
 import { useDepositVault } from '@/hooks/useDepositVault';
 import { useLogStream, LogEntry } from '@/hooks/useLogStream';
-import { format } from 'date-fns';
-import { BiBrain } from 'react-icons/bi';
-import { BsChatDots } from 'react-icons/bs';
-import { AiOutlineDatabase } from 'react-icons/ai';
-import { Badge } from '@/components/common/Badge';
-import { FaRobot } from 'react-icons/fa';
-import { Hex } from 'viem';
-import { Tooltip } from '@nextui-org/tooltip';
 import { TooltipContent } from '@/components/TooltipContent';
 import { IoMdRefresh } from 'react-icons/io';
 
@@ -29,7 +29,7 @@ const USDC = {
   symbol: 'USDC',
   img: require('../../src/imgs/tokens/usdc.webp') as string,
   decimals: 6,
-  address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'
+  address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
 
 const vaultAddress = '0x346aac1e83239db6a6cb760e95e13258ad3d1a6d';
@@ -44,8 +44,8 @@ function VaultInfoCard({ vault }: { vault: any }) {
         <span className="text-base font-medium">Vault Overview</span>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => refetch()}
-            className={`rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 transition-all
+            onClick={async () => refetch()}
+            className={`rounded-full p-1 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800
               ${isRefetching ? 'animate-spin' : ''}`}
             disabled={isRefetching}
             title="Refresh vault data"
@@ -62,22 +62,15 @@ function VaultInfoCard({ vault }: { vault: any }) {
           <div className="flex items-center justify-between">
             <span className="text-gray-500">Asset:</span>
             <div className="flex items-center">
-              
-              <Image
-                src={USDC.img}
-                alt={USDC.symbol}
-                width={20}
-                height={20}
-                className="mr-2"
-              />
-              
+              <Image src={USDC.img} alt={USDC.symbol} width={20} height={20} className="mr-2" />
+
               <span>USDC</span>
             </div>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-500">Total Deposits:</span>
             <span>
-              {formatBalance(BigInt(vault.state.totalAssets), vault.asset.decimals)} {'USDC'}
+              {formatBalance(BigInt(vault.state.totalAssets), vault.asset.decimals)} USDC
             </span>
           </div>
           <div className="flex items-center justify-between">
@@ -117,7 +110,8 @@ const categoryConfig = {
     icon: BsChatDots,
     label: 'Chat',
     summary: 'Public chat',
-    description: 'Public chat to engage with Wowo, shared with public, with access to admin messages with Wowo!',
+    description:
+      'Public chat to engage with Wowo, shared with public, with access to admin messages with Wowo!',
     emptyMessage: 'Deposit to attach a message to Wowo!',
     bgColor: 'bg-green-50/50 dark:bg-green-950/30',
     borderColor: 'border-green-100 dark:border-green-900',
@@ -127,7 +121,8 @@ const categoryConfig = {
     icon: BiBrain,
     label: 'Thinking',
     summary: 'Real-time thoughts',
-    description: 'See what Wowo is thinking behind the scene, including market analysis and decision-making process',
+    description:
+      'See what Wowo is thinking behind the scene, including market analysis and decision-making process',
     emptyMessage: 'Wowo is waiting for activities to analyze...',
     bgColor: 'bg-purple-50/50 dark:bg-purple-950/30',
     borderColor: 'border-purple-100 dark:border-purple-900',
@@ -163,13 +158,7 @@ type MemoryDetails = {
   summary: string;
 };
 
-function ChatMessage({ 
-  log,
-  isLast 
-}: { 
-  log: LogEntry;
-  isLast: boolean;
-}) {
+function ChatMessage({ log, isLast }: { log: LogEntry; isLast: boolean }) {
   const details = log.details as unknown as MessageDetails;
   const isAgent = details.from === 'agent';
   const isAdmin = details.from === 'admin';
@@ -190,10 +179,7 @@ function ChatMessage({
               </div>
             </Badge>
           ) : isAdmin ? (
-            <Badge
-              variant="success"
-              size="sm"
-            >
+            <Badge variant="success" size="sm">
               ADMIN
             </Badge>
           ) : (
@@ -211,7 +197,7 @@ function ChatMessage({
         </span>
       </div>
 
-      <p className="text-sm text-green-800 dark:text-green-200 whitespace-pre-wrap">
+      <p className="whitespace-pre-wrap text-sm text-green-800 dark:text-green-200">
         {details.text}
       </p>
     </div>
@@ -273,16 +259,15 @@ function MemoryMessage({ log }: { log: LogEntry }) {
         </span>
       </div>
 
-      <p className="text-sm text-blue-800 dark:text-blue-200">
-        {details.summary}
-      </p>
+      <p className="text-sm text-blue-800 dark:text-blue-200">{details.summary}</p>
     </div>
   );
 }
 
 function ActivityFeed() {
   const { logs, isConnected, error, reconnect } = useLogStream();
-  const [selectedCategory, setSelectedCategory] = useState<keyof typeof categoryConfig>('conversation');
+  const [selectedCategory, setSelectedCategory] =
+    useState<keyof typeof categoryConfig>('conversation');
 
   const categories = ['conversation', 'think', 'memory'] as const;
 
@@ -301,23 +286,22 @@ function ActivityFeed() {
                     key={category}
                     onClick={() => setSelectedCategory(category)}
                     className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm transition-all
-                      ${isSelected 
-                        ? `${config.bgColor} ${config.iconColor}` 
-                        : 'text-secondary hover:bg-gray-100 dark:hover:bg-gray-800'
+                      ${
+                        isSelected
+                          ? `${config.bgColor} ${config.iconColor}`
+                          : 'text-secondary hover:bg-gray-100 dark:hover:bg-gray-800'
                       }`}
                     title={config.description}
                   >
                     <Icon className="h-4 w-4" />
-                    <span className="hidden sm:inline ml-1">{config.label}</span>
+                    <span className="ml-1 hidden sm:inline">{config.label}</span>
                   </button>
                 );
               })}
             </div>
             <div className="flex items-center gap-2">
               <div
-                className={`h-2 w-2 rounded-full ${
-                  isConnected ? 'bg-green-500' : 'bg-red-500'
-                }`}
+                className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}
               />
               <span className="text-xs text-gray-500">
                 {isConnected ? 'Connected' : 'Disconnected'}
@@ -325,7 +309,7 @@ function ActivityFeed() {
               {!isConnected && (
                 <button
                   onClick={reconnect}
-                  className="ml-2 rounded-lg bg-primary/10 px-2 py-1 text-xs text-primary hover:bg-primary/20 transition-colors"
+                  className="ml-2 rounded-lg bg-primary/10 px-2 py-1 text-xs text-primary transition-colors hover:bg-primary/20"
                 >
                   Reconnect
                 </button>
@@ -335,7 +319,7 @@ function ActivityFeed() {
         </div>
       </CardHeader>
 
-      <CardBody className="custom-scrollbar p-0 overflow-y-auto pr-[22px]">
+      <CardBody className="custom-scrollbar overflow-y-auto p-0 pr-[22px]">
         {error ? (
           <div className="p-4 text-sm text-red-500">{error}</div>
         ) : (
@@ -344,7 +328,7 @@ function ActivityFeed() {
               key={selectedCategory}
               category={selectedCategory}
               logs={logs}
-              isExpanded={true}
+              isExpanded
               onToggle={() => {}}
             />
           </div>
@@ -354,27 +338,31 @@ function ActivityFeed() {
   );
 }
 
-function CategorySection({ 
+function CategorySection({
   category,
   logs,
   isExpanded,
-}: { 
+}: {
   category: keyof typeof categoryConfig;
   logs: LogEntry[];
   isExpanded: boolean;
   onToggle?: () => void;
 }) {
   const config = categoryConfig[category];
-  const filteredLogs = logs.filter(log => log.category === category);
+  const filteredLogs = logs.filter((log) => log.category === category);
 
   return (
-    <div className={`h-full rounded-lg border transition-all duration-300 ${config.bgColor} ${config.borderColor}`}>
+    <div
+      className={`h-full rounded-lg border transition-all duration-300 ${config.bgColor} ${config.borderColor}`}
+    >
       <Tooltip
-        content={<TooltipContent
-          title={config.label}
-          detail={config.description}
-          icon={<config.icon className={`h-8 w-8 ${config.iconColor} opacity-40`} />}
-        />}
+        content={
+          <TooltipContent
+            title={config.label}
+            detail={config.description}
+            icon={<config.icon className={`h-8 w-8 ${config.iconColor} opacity-40`} />}
+          />
+        }
         placement="bottom"
         delay={0}
         closeDelay={0}
@@ -391,41 +379,37 @@ function CategorySection({
               {filteredLogs.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center space-y-2 text-center">
                   <config.icon className={`h-8 w-8 ${config.iconColor} opacity-40`} />
-                  <div className="text-sm text-gray-500">
-                    {config.emptyMessage}
-                  </div>
+                  <div className="text-sm text-gray-500">{config.emptyMessage}</div>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {category === 'conversation' ? (
-                    // Chat-style layout for conversation
-                    filteredLogs
-                      .slice()
-                      .reverse()
-                      .map((log, index, array) => (
-                        <ChatMessage 
-                          key={log.timestamp + index} 
-                          log={log}
-                          isLast={index === array.length - 1}
-                        />
-                      ))
-                  ) : category === 'think' ? (
-                    // Thinking layout
-                    filteredLogs
-                      .slice()
-                      .reverse()
-                      .map((log, index) => (
-                        <ThinkingMessage key={log.timestamp + index} log={log} />
-                      ))
-                  ) : (
-                    // Memory layout
-                    filteredLogs
-                      .slice()
-                      .reverse()
-                      .map((log, index) => (
-                        <MemoryMessage key={log.timestamp + index} log={log} />
-                      ))
-                  )}
+                  {category === 'conversation'
+                    ? // Chat-style layout for conversation
+                      filteredLogs
+                        .slice()
+                        .reverse()
+                        .map((log, index, array) => (
+                          <ChatMessage
+                            key={log.timestamp + index}
+                            log={log}
+                            isLast={index === array.length - 1}
+                          />
+                        ))
+                    : category === 'think'
+                    ? // Thinking layout
+                      filteredLogs
+                        .slice()
+                        .reverse()
+                        .map((log, index) => (
+                          <ThinkingMessage key={log.timestamp + index} log={log} />
+                        ))
+                    : // Memory layout
+                      filteredLogs
+                        .slice()
+                        .reverse()
+                        .map((log, index) => (
+                          <MemoryMessage key={log.timestamp + index} log={log} />
+                        ))}
                 </div>
               )}
             </div>
@@ -439,7 +423,7 @@ function CategorySection({
 function DepositCard() {
   const { balances } = useUserBalances();
   const usdcBalance = BigInt(
-    balances.find((b) => b.address.toLowerCase() === USDC.address.toLowerCase())?.balance || 0n
+    balances.find((b) => b.address.toLowerCase() === USDC.address.toLowerCase())?.balance || 0n,
   );
 
   const [depositAmount, setDepositAmount] = useState<bigint>(0n);
@@ -450,7 +434,7 @@ function DepositCard() {
     USDC.address as `0x${string}`,
     vaultAddress as `0x${string}`,
     depositAmount,
-    message
+    message,
   );
 
   return (

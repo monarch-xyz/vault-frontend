@@ -149,7 +149,7 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
     setMarkets([]);
     try {
       await fetchMarkets();
-      
+
       // Restart polling after manual refresh
       pollingTimerRef.current = setInterval(() => {
         fetchMarkets(true).catch(console.error);

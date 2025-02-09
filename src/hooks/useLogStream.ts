@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect, useState, useCallback, useRef } from 'react';
 
 export type LogEntry = {
@@ -72,4 +74,4 @@ export function useLogStream() {
     getLogsByCategory,
     reconnect: connect,
   };
-} 
+}

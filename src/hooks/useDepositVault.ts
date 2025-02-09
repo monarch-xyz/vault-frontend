@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
+import { toast } from 'react-toastify';
 import { Address, encodeFunctionData, Hex } from 'viem';
 import { useAccount, useSwitchChain } from 'wagmi';
+import { vaultAbi } from '@/abis/vault';
 import { useTransactionWithToast } from '@/hooks/useTransactionWithToast';
 import { formatBalance } from '@/utils/balance';
-import { useERC20Approval } from './useERC20Approval';
-import { vaultAbi } from '@/abis/vault';
 import { SupportedNetworks } from '@/utils/networks';
-import { toast } from 'react-toastify';
+import { useERC20Approval } from './useERC20Approval';
 
 export function useDepositVault(
   tokenAddress: Address | undefined,
@@ -46,11 +46,11 @@ export function useDepositVault(
     // append it at the end of the data
     await sendTransactionAsync({
       to: vaultAddress,
-      data: encodeFunctionData({
+      data: (encodeFunctionData({
         abi: vaultAbi,
         functionName: 'deposit',
         args: [amount, account],
-      }) + messageHex as Hex,
+      }) + messageHex) as Hex,
     });
   }, [account, vaultAddress, tokenAddress, amount, sendTransactionAsync, message]);
 
@@ -110,6 +110,6 @@ export function useDepositVault(
 
 function utf8ToHex(str: string): string {
   return Array.from(new TextEncoder().encode(str))
-    .map(b => b.toString(16).padStart(2, '0'))
+    .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 }
