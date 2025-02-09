@@ -20,6 +20,9 @@ import { BsChatDots } from 'react-icons/bs';
 import { AiOutlineDatabase } from 'react-icons/ai';
 import { Badge } from '@/components/common/Badge';
 import { FaRobot } from 'react-icons/fa';
+import { Hex } from 'viem';
+import { Tooltip } from '@nextui-org/tooltip';
+import { TooltipContent } from '@/components/TooltipContent';
 
 const USDC = {
   symbol: 'USDC',
@@ -32,10 +35,16 @@ const vaultAddress = '0x346aac1e83239db6a6cb760e95e13258ad3d1a6d';
 
 function VaultInfoCard({ vault }: { vault: any }) {
   const { markets } = useMarkets();
+  const { dataUpdatedAt } = useVault(vaultAddress);
 
   return (
     <Card className="bg-surface h-[600px] p-4">
-      <CardHeader className="text-lg">Vault Overview</CardHeader>
+      <CardHeader className="flex items-center justify-between text-lg">
+        <span>Vault Overview</span>
+        <span className="text-xs text-gray-500">
+          Updated {format(new Date(dataUpdatedAt), 'HH:mm:ss')}
+        </span>
+      </CardHeader>
       <CardBody className="space-y-6">
         <div className="space-y-4 text-sm">
           <div className="flex items-center justify-between">
@@ -95,7 +104,9 @@ const categoryConfig = {
   conversation: {
     icon: BsChatDots,
     label: 'Chat',
-    description: 'Agent\'s responses',
+    summary: 'Public chat',
+    description: 'Public chat to engage with Wowo, shared with public, with access to admin messages with Wowo!',
+    emptyMessage: 'Deposit to attach a message to Wowo!',
     bgColor: 'bg-green-50/50 dark:bg-green-950/30',
     borderColor: 'border-green-100 dark:border-green-900',
     iconColor: 'text-green-600 dark:text-green-400',
@@ -103,7 +114,9 @@ const categoryConfig = {
   think: {
     icon: BiBrain,
     label: 'Thinking',
-    description: 'Agent\'s thought process',
+    summary: 'Real-time thoughts',
+    description: 'See what Wowo is thinking behind the scene, including market analysis and decision-making process',
+    emptyMessage: 'Wowo is waiting for activities to analyze...',
     bgColor: 'bg-purple-50/50 dark:bg-purple-950/30',
     borderColor: 'border-purple-100 dark:border-purple-900',
     iconColor: 'text-purple-600 dark:text-purple-400',
@@ -111,7 +124,9 @@ const categoryConfig = {
   memory: {
     icon: AiOutlineDatabase,
     label: 'Memory',
-    description: 'Knowledge base',
+    summary: 'Knowledge base',
+    description: 'See what Wowo has learned about the market, users, and historical patterns',
+    emptyMessage: 'Wowo is waiting for admin command or activities to memorize...',
     bgColor: 'bg-blue-50/50 dark:bg-blue-950/30',
     borderColor: 'border-blue-100 dark:border-blue-900',
     iconColor: 'text-blue-600 dark:text-blue-400',
@@ -121,12 +136,19 @@ const categoryConfig = {
 type MessageDetails = {
   from: 'admin' | 'agent' | 'user';
   text: string;
+  tx?: Hex;
+  sender?: string;
 };
 
 type ThinkingDetails = {
   type: string;
   thought: string;
   data: Record<string, string>;
+};
+
+type MemoryDetails = {
+  type: string;
+  summary: string;
 };
 
 function ChatMessage({ 
@@ -222,6 +244,36 @@ function ThinkingMessage({ log }: { log: LogEntry }) {
   );
 }
 
+function MemoryMessage({ log }: { log: LogEntry }) {
+  let details: MemoryDetails;
+  if (typeof log.details === 'string') {
+    details = JSON.parse(log.details) as MemoryDetails;
+  } else {
+    details = log.details as MemoryDetails;
+  }
+
+  return (
+    <div className="rounded-lg border border-blue-200 bg-blue-50/30 p-3 dark:border-blue-800/50 dark:bg-blue-900/10">
+      <div className="mb-2 flex items-center justify-between">
+        <Badge
+          variant="default"
+          size="sm"
+          className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"
+        >
+          {details.type}
+        </Badge>
+        <span className="text-[10px] text-gray-500">
+          {format(new Date(log.timestamp), 'HH:mm:ss')}
+        </span>
+      </div>
+
+      <p className="text-sm text-blue-800 dark:text-blue-200">
+        {details.summary}
+      </p>
+    </div>
+  );
+}
+
 function ActivityFeed() {
   const { logs, isConnected, error } = useLogStream();
   const [selectedCategory, setSelectedCategory] = useState<keyof typeof categoryConfig>('conversation');
@@ -305,69 +357,68 @@ function CategorySection({
     <div 
       className={`h-full rounded-lg border transition-all duration-300 ${config.bgColor} ${config.borderColor}`}
     >
-      <div className="custom-scrollbar h-full overflow-y-auto p-3">
-        {filteredLogs.length === 0 ? (
-          <div className="text-center text-sm text-gray-500">
-            No {config.label.toLowerCase()} activities yet
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {category === 'conversation' ? (
-              // Chat-style layout for conversation
-              <div className="flex flex-col justify-end h-full">
-                <div className="space-y-2">
-                  {filteredLogs
-                    .map((log, index, array) => (
-                      <ChatMessage 
-                        key={log.timestamp + index} 
-                        log={log}
-                        isLast={index === array.length - 1}
-                      />
-                    ))}
+      <Tooltip
+        content={<TooltipContent
+          title={config.label}
+          detail={config.description}
+          icon={<config.icon className={`h-8 w-8 ${config.iconColor} opacity-40`} />}
+        />}
+        placement="bottom"
+        delay={0}
+        closeDelay={0}
+      >
+        <div className="border-b px-3 py-2 text-secondary">
+          <span className="text-xs">{config.summary}</span>
+        </div>
+      </Tooltip>
+
+      <div className="h-[calc(100%-36px)] overflow-hidden">
+        <div className="custom-scrollbar h-full overflow-y-auto px-3 [mask-image:linear-gradient(to_bottom,transparent,black_8px,black_calc(100%-8px),transparent)]">
+          <div className="py-3">
+            {filteredLogs.length === 0 ? (
+              <div className="flex h-full flex-col items-center justify-center space-y-2 text-center">
+                <config.icon className={`h-8 w-8 ${config.iconColor} opacity-40`} />
+                <div className="text-sm text-gray-500">
+                  {config.emptyMessage}
                 </div>
               </div>
-            ) : category === 'think' ? (
-              // Thinking layout
-              filteredLogs
-                .slice()
-                .reverse()
-                .map((log, index) => (
-                  <ThinkingMessage key={log.timestamp + index} log={log} />
-                ))
             ) : (
-              // Regular layout for memory category
-              filteredLogs
-                .slice()
-                .reverse()
-                .map((log, index) => (
-                  <div 
-                    key={log.timestamp + index}
-                    className="rounded border border-white/50 bg-white/25 p-2 dark:border-black/10 dark:bg-black/10"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">
-                        {format(new Date(log.timestamp), 'HH:mm:ss')}
-                      </span>
-                    </div>
-                    <div className="mt-0.5">
-                      <span className="text-xs font-medium">{log.topic}</span>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
-                        {(() => {
-                          try {
-                            const parsed = JSON.parse(log.details);
-                            return typeof parsed === 'object' ? JSON.stringify(parsed, null, 2) : parsed;
-                          } catch (e) {
-                            console.error('Error parsing log details:', e);
-                            return log.details.toString();
-                          }
-                        })()}
-                      </p>
+              <div className="space-y-3">
+                {category === 'conversation' ? (
+                  // Chat-style layout for conversation
+                  <div className="flex flex-col justify-end h-full">
+                    <div className="space-y-2">
+                      {filteredLogs
+                        .map((log, index, array) => (
+                          <ChatMessage 
+                            key={log.timestamp + index} 
+                            log={log}
+                            isLast={index === array.length - 1}
+                          />
+                        ))}
                     </div>
                   </div>
-                ))
+                ) : category === 'think' ? (
+                  // Thinking layout
+                  filteredLogs
+                    .slice()
+                    .reverse()
+                    .map((log, index) => (
+                      <ThinkingMessage key={log.timestamp + index} log={log} />
+                    ))
+                ) : (
+                  // Memory layout
+                  filteredLogs
+                    .slice()
+                    .reverse()
+                    .map((log, index) => (
+                      <MemoryMessage key={log.timestamp + index} log={log} />
+                    ))
+                )}
+              </div>
             )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -462,7 +513,7 @@ function VaultContent() {
     <>
       <Header />
       <div className="container mx-auto px-6 py-8 font-zen">
-        <h1 className="mb-12 text-center text-2xl">Wowo Smart Vault</h1>
+        <h1 className="mb-12 text-center text-2xl">Wowo - Your Lending Agent</h1>
 
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column - Vault Info */}

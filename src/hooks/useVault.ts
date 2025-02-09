@@ -85,6 +85,8 @@ const graphqlFetcher = async (
   return result;
 };
 
+const POLLING_INTERVAL = 30000; // 30 seconds
+
 export const useVault = (vaultAddress: string) => {
   return useQuery<VaultData>({
     queryKey: ['vault'],
@@ -92,5 +94,8 @@ export const useVault = (vaultAddress: string) => {
       const response = await graphqlFetcher(vaultQuery, {});
       return response.data.vaultByAddress;
     },
+    refetchInterval: POLLING_INTERVAL, // Add polling
+    refetchIntervalInBackground: true, // Continue polling in background
+    staleTime: POLLING_INTERVAL / 2, // Consider data stale after 15s
   });
 };
