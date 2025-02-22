@@ -1,20 +1,23 @@
 import { useActivities } from '@/hooks/useActivities'
-import { useLogStream } from '@/hooks/useLogStream'
 import { format } from 'date-fns'
 import { Badge } from '@/components/common/Badge'
-import { BiBrain, BiTransfer, BiInfoCircle } from 'react-icons/bi'
+import { BiBrain, BiTransfer } from 'react-icons/bi'
+import { TbReportAnalytics } from 'react-icons/tb'
+import { Spinner } from '@/components/common/Spinner'
 
 const activityTypes = {
-  action: {
-    label: 'Action',
-    description: 'On-chain reallocation transactions',
-    icon: BiTransfer,
-    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
-    borderColor: 'border-green-100 dark:border-green-900',
-    iconColor: 'text-green-600 dark:text-green-400',
-    badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
+  report: {
+    label: 'Report',
+    description: 'Periodic summaries and market updates',
+    icon: TbReportAnalytics,
+    bgColor: 'bg-blue-50/50 dark:bg-blue-950/30',
+    borderColor: 'border-blue-100 dark:border-blue-900',
+    iconColor: 'text-blue-600 dark:text-blue-400',
+    badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
     subTypes: {
-      reallocation: 'Reallocation'
+      daily: 'Daily Summary',
+      market: 'Market Update',
+      hourly: 'Hourly Update'
     }
   },
   think: {
@@ -30,18 +33,16 @@ const activityTypes = {
       strategy: 'Strategy'
     }
   },
-  report: {
-    label: 'Report',
-    description: 'Periodic summaries and market updates',
-    icon: BiInfoCircle,
-    bgColor: 'bg-blue-50/50 dark:bg-blue-950/30',
-    borderColor: 'border-blue-100 dark:border-blue-900',
-    iconColor: 'text-blue-600 dark:text-blue-400',
-    badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300',
+  action: {
+    label: 'Action',
+    description: 'On-chain reallocation transactions',
+    icon: BiTransfer,
+    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
+    borderColor: 'border-green-100 dark:border-green-900',
+    iconColor: 'text-green-600 dark:text-green-400',
+    badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
     subTypes: {
-      daily: 'Daily Summary',
-      market: 'Market Update',
-      hourly: 'Hourly Update'
+      reallocation: 'Reallocation'
     }
   }
 } as const;
@@ -104,9 +105,25 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
 }
 
 export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: string }) {
-  const { logs } = useLogStream();
-  const { activities } = useActivities();
+  const { activities, isLoading, error } = useActivities();
   
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner size={24} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center text-red-500">
+        <p>Failed to load activities</p>
+        <p className="text-sm">{error}</p>
+      </div>
+    );
+  }
+
   // Combine and format entries
   const allEntries = [
     ...activities.map(memory => ({
@@ -116,13 +133,6 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
       timestamp: memory.created_at,
       metadata: {}
     })),
-    ...logs.map(log => ({
-      text: log.details.text,
-      type: log.type.split(':')[0],
-      sub_type: log.type.split(':')[1],
-      timestamp: log.timestamp,
-      metadata: log.details.metadata
-    }))
   ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   // Filter entries based on selectedType
@@ -130,11 +140,20 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
     ? allEntries
     : allEntries.filter(entry => entry.type.toLowerCase() === selectedType);
 
+  // Get the appropriate icon for empty state
+  const EmptyIcon = selectedType === 'all' 
+    ? BiBrain 
+    : activityTypes[selectedType as keyof typeof activityTypes]?.icon;
+
+  const emptyIconColor = selectedType === 'all'
+    ? 'text-gray-400'
+    : activityTypes[selectedType as keyof typeof activityTypes]?.iconColor;
+
   return (
     <div className="space-y-4">
       {filteredEntries.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center space-y-2 text-center">
-          <BiBrain className="h-8 w-8 text-purple-600 dark:text-purple-400 opacity-40" />
+          <EmptyIcon className={`h-8 w-8 ${emptyIconColor} opacity-40`} />
           <div className="text-sm text-gray-500">
             {selectedType === 'all' 
               ? 'No activities yet...'

@@ -5,7 +5,9 @@ import { Card, CardHeader, CardBody } from '@nextui-org/card';
 import { Tooltip } from '@nextui-org/tooltip';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { BiBrain, BiTransfer, BiInfoCircle } from 'react-icons/bi';
+import { BiBrain, BiTransfer } from 'react-icons/bi';
+import { BsChatDots } from 'react-icons/bs';
+import { TbReportAnalytics } from 'react-icons/tb';
 import { Button } from '@/components/common/Button';
 import { MarketInfoBlockCompact } from '@/components/common/MarketInfoBlock';
 import { Spinner } from '@/components/common/Spinner';
@@ -16,10 +18,8 @@ import { formatBalance } from '@/utils/balance';
 import { useUserBalances } from '@/hooks/useUserBalances';
 import Input from '@/components/Input/Input';
 import { useDepositVault } from '@/hooks/useDepositVault';
-import { useLogStream, LogEntry } from '@/hooks/useLogStream';
 import { IoMdRefresh } from 'react-icons/io';
 import { ChatSection } from '@/components/vault/ChatSection';
-import { RiSwitchLine } from 'react-icons/ri';
 import { ActivitiesSection } from '@/components/vault/ActivitiesSection';
 const USDC = {
   symbol: 'USDC',
@@ -73,10 +73,6 @@ function VaultInfoCard({ vault }: { vault: any }) {
             <span className="text-gray-500">Current APY:</span>
             <span>{(vault.state.apy * 100).toFixed(2)}%</span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-gray-500">All-time APY:</span>
-            <span>{(vault.state.allTimeApy * 100).toFixed(2)}%</span>
-          </div>
         </div>
 
         {markets && vault.state.allocation.length > 0 && (
@@ -102,18 +98,17 @@ function VaultInfoCard({ vault }: { vault: any }) {
 }
 
 function ActivityCard() {
-  const { isConnected, reconnect } = useLogStream();
   const [selectedType, setSelectedType] = useState('all');
   const [showChat, setShowChat] = useState(false);
 
   const activityTypes = {
-    action: {
-      label: 'Actions',
-      description: 'On-chain transactions and their status',
-      icon: BiTransfer,
-      bgColor: 'bg-green-50/50 dark:bg-green-950/30',
-      borderColor: 'border-green-100 dark:border-green-900',
-      iconColor: 'text-green-600 dark:text-green-400',
+    report: {
+      label: 'Reports',
+      description: 'Formal summaries of actions and market conditions',
+      icon: TbReportAnalytics,
+      bgColor: 'bg-blue-50/50 dark:bg-blue-950/30',
+      borderColor: 'border-blue-100 dark:border-blue-900',
+      iconColor: 'text-blue-600 dark:text-blue-400',
     },
     think: {
       label: 'Thought',
@@ -123,13 +118,13 @@ function ActivityCard() {
       borderColor: 'border-purple-100 dark:border-purple-900',
       iconColor: 'text-purple-600 dark:text-purple-400',
     },
-    report: {
-      label: 'Reports',
-      description: 'Formal summaries of actions and market conditions',
-      icon: BiInfoCircle,
-      bgColor: 'bg-blue-50/50 dark:bg-blue-950/30',
-      borderColor: 'border-blue-100 dark:border-blue-900',
-      iconColor: 'text-blue-600 dark:text-blue-400',
+    action: {
+      label: 'Actions',
+      description: 'On-chain transactions and their status',
+      icon: BiTransfer,
+      bgColor: 'bg-green-50/50 dark:bg-green-950/30',
+      borderColor: 'border-green-100 dark:border-green-900',
+      iconColor: 'text-green-600 dark:text-green-400',
     },
   } as const;
 
@@ -139,37 +134,14 @@ function ActivityCard() {
         <span className="text-base font-medium">
           {showChat ? 'Public Chat' : 'Agent Activity'}
         </span>
-        <div className="flex items-center gap-4">
-          {/* Connection Status */}
-          <div className="flex items-center gap-2">
-            <div
-              className={`h-2 w-2 rounded-full ${
-                isConnected ? 'bg-green-500' : 'bg-red-500'
-              }`}
-            />
-            <span className="text-xs text-gray-500">
-              {isConnected ? 'Connected' : 'Disconnected'}
-            </span>
-            {!isConnected && (
-              <button
-                onClick={reconnect}
-                className="ml-2 rounded-lg bg-primary/10 px-2 py-1 text-xs text-primary transition-colors hover:bg-primary/20"
-              >
-                Reconnect
-              </button>
-            )}
-          </div>
-
-          {/* Switch Button */}
-          <Tooltip content={showChat ? 'Show Activities' : 'Show Chat'}>
-            <button
-              onClick={() => setShowChat(!showChat)}
-              className="rounded-full p-1.5 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
-            >
-              <RiSwitchLine className="h-5 w-5" />
-            </button>
-          </Tooltip>
-        </div>
+        <Tooltip content={showChat ? 'Show Activities' : 'Show Chat'}>
+          <button
+            onClick={() => setShowChat(!showChat)}
+            className="rounded-full p-1.5 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+          >
+            <BsChatDots className="h-5 w-5" />
+          </button>
+        </Tooltip>
       </CardHeader>
 
       <CardBody className="pt-4">
@@ -178,7 +150,7 @@ function ActivityCard() {
         ) : (
           <div className="flex flex-col h-full">
             {/* Activity Type Selector */}
-            <div className="flex gap-2 p-2 border-b mb-4">
+            <div className="flex gap-2 p-2 border-b mb-4 items-center">
               <button
                 onClick={() => setSelectedType('all')}
                 className={`px-3 py-1.5 rounded-lg transition-all text-sm

@@ -1,20 +1,13 @@
-import { useLogStream, LogEntry } from '@/hooks/useLogStream'
 import { format } from 'date-fns'
 import { Badge } from '@/components/common/Badge'
 import { FaRobot } from 'react-icons/fa'
 import { BsChatDots } from 'react-icons/bs'
+import { useChat, ChatMessage } from '@/hooks/useChat'
+import { Spinner } from '@/components/common/Spinner'
 
-type MessageDetails = {
-  from: 'admin' | 'agent' | 'user';
-  text: string;
-  tx?: string;
-  sender?: string;
-}
-
-function ChatMessage({ log, isLast }: { log: LogEntry; isLast: boolean }) {
-  const details = log.details as unknown as MessageDetails;
-  const isAgent = details.from === 'agent';
-  const isAdmin = details.from === 'admin';
+function ChatBubble({ message }: { message: ChatMessage }) {
+  const isAgent = message.from === 'agent'
+  const isAdmin = message.from === 'admin'
 
   return (
     <div className="rounded-lg border border-green-200 bg-green-50/30 p-3 dark:border-green-800/50 dark:bg-green-900/10">
@@ -44,40 +37,62 @@ function ChatMessage({ log, isLast }: { log: LogEntry; isLast: boolean }) {
               USER
             </Badge>
           )}
+          {message.sender && (
+            <span className="text-xs text-gray-500">
+              {message.sender.slice(0, 6)}...{message.sender.slice(-4)}
+            </span>
+          )}
         </div>
         <span className="text-[10px] text-gray-500">
-          {format(new Date(log.timestamp), 'HH:mm:ss')}
+          {format(new Date(message.created_at), 'HH:mm:ss')}
         </span>
       </div>
       <p className="whitespace-pre-wrap text-sm text-green-800 dark:text-green-200">
-        {details.text}
+        {message.text}
       </p>
+      {message.tx && (
+        <div className="mt-2 text-xs text-gray-500">
+          TX: {message.tx.slice(0, 6)}...{message.tx.slice(-4)}
+        </div>
+      )}
     </div>
   );
 }
 
 export function ChatSection() {
-  const { logs } = useLogStream();
-  const chatLogs = logs.filter(log => log.category === 'conversation');
+  const { messages, isLoading, error } = useChat();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner size={24} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center text-red-500">
+        <p>Failed to load chat messages</p>
+        <p className="text-sm">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
-      {chatLogs.length === 0 ? (
+      {messages.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center space-y-2 text-center">
           <BsChatDots className="h-8 w-8 text-green-600 dark:text-green-400 opacity-40" />
           <div className="text-sm text-gray-500">Deposit to attach a message to Wowo!</div>
         </div>
       ) : (
-        chatLogs
-          .slice()
-          .reverse()
-          .map((log, index, array) => (
-            <ChatMessage
-              key={log.timestamp + index}
-              log={log}
-              isLast={index === array.length - 1}
-            />
-          ))
+        messages.map((message) => (
+          <ChatBubble
+            key={message.id}
+            message={message}
+          />
+        ))
       )}
     </div>
   );
