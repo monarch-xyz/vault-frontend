@@ -15,4 +15,4 @@ const VaultContent = dynamic(() => import('./content'), {
 
 export default function HomeClient() {
   return <VaultContent />;
-} 
+}

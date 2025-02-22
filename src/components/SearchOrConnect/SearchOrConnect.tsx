@@ -66,7 +66,6 @@ export default function SearchOrConnect({ path }: { path: string }) {
                 if (isAddress(inputAddress.toLowerCase(), { strict: false })) {
                   window.location.href = `/${path}/${inputAddress}`;
                 } else {
-                  console.log('inputAddress', inputAddress);
                   toast.error('Invalid address');
                 }
               }}

@@ -157,7 +157,7 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
           <div className="text-sm text-gray-500">
             {selectedType === 'all' 
               ? 'No activities yet...'
-              : `No ${activityTypes[selectedType as keyof typeof activityTypes]?.label.toLowerCase()} activities yet...`
+              : `No ${activityTypes[selectedType as keyof typeof activityTypes]?.label.toLowerCase()} yet...`
             }
           </div>
         </div>

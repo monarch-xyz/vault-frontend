@@ -37,7 +37,7 @@ function VaultInfoCard({ vault }: { vault: any }) {
   return (
     <Card className="bg-surface h-[600px] p-4">
       <CardHeader className="flex items-center justify-between">
-        <span className="text-base font-medium">Vault Overview</span>
+        <span className="text-lg font-medium">Vault Overview</span>
         <div className="flex items-center gap-2">
           <button
             onClick={async () => refetch()}
@@ -77,7 +77,7 @@ function VaultInfoCard({ vault }: { vault: any }) {
 
         {markets && vault.state.allocation.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-medium">Current Allocations</h3>
+            <h3 className="text-base font-medium">Current Allocations</h3>
             {vault.state.allocation.map((allocation: any) => {
               const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
               if (!market || allocation.supplyAssets === 0) return null;
@@ -131,7 +131,7 @@ function ActivityCard() {
   return (
     <Card className="bg-surface h-[600px] p-4">
       <CardHeader className="flex items-center justify-between">
-        <span className="text-base font-medium">
+        <span className="text-base text-lg">
           {showChat ? 'Public Chat' : 'Agent Activity'}
         </span>
         <Tooltip content={showChat ? 'Show Activities' : 'Show Chat'}>
