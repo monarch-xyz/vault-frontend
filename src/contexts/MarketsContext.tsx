@@ -11,7 +11,6 @@ import {
   useRef,
 } from 'react';
 import { marketsQuery } from '@/graphql/queries';
-import useLiquidations from '@/hooks/useLiquidations';
 import { isSupportedChain } from '@/utils/networks';
 import { Market } from '@/utils/types';
 import { getMarketWarningsWithDetail } from '@/utils/warnings';
@@ -48,13 +47,6 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
   const [error, setError] = useState<unknown | null>(null);
   const pollingTimerRef = useRef<NodeJS.Timeout>();
 
-  const {
-    loading: liquidationsLoading,
-    liquidatedMarketIds,
-    error: liquidationsError,
-    refetch: refetchLiquidations,
-  } = useLiquidations();
-
   const fetchMarkets = useCallback(
     async (isRefetch = false) => {
       try {
@@ -85,12 +77,10 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
 
         const processedMarkets = filtered.map((market) => {
           const warningsWithDetail = getMarketWarningsWithDetail(market);
-          const isProtectedByLiquidationBots = liquidatedMarketIds.has(market.id);
 
           return {
             ...market,
             warningsWithDetail,
-            isProtectedByLiquidationBots,
           };
         });
 
@@ -106,19 +96,19 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
         }
       }
     },
-    [liquidatedMarketIds],
+    [],
   );
 
   // Set up polling
   useEffect(() => {
     // Initial fetch
-    if (!liquidationsLoading && markets.length === 0) {
+    if (markets.length === 0) {
       fetchMarkets().catch(console.error);
     }
 
     // Set up periodic polling
     pollingTimerRef.current = setInterval(() => {
-      if (!liquidationsLoading) {
+      if (!loading) {
         fetchMarkets(true).catch(console.error);
       }
     }, POLLING_INTERVAL);
@@ -129,14 +119,13 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
         clearInterval(pollingTimerRef.current);
       }
     };
-  }, [liquidationsLoading, fetchMarkets]);
+  }, [loading, fetchMarkets]);
 
   const refetch = useCallback(
     (onSuccess?: () => void) => {
-      refetchLiquidations();
       fetchMarkets(true).then(onSuccess).catch(console.error);
     },
-    [refetchLiquidations, fetchMarkets],
+    [fetchMarkets],
   );
 
   const refresh = useCallback(async () => {
@@ -159,8 +148,8 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
     }
   }, [fetchMarkets]);
 
-  const isLoading = loading || liquidationsLoading;
-  const combinedError = error || liquidationsError;
+  const isLoading = loading;
+  const combinedError = error;
 
   const contextValue = useMemo(
     () => ({

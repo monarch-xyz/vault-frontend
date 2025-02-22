@@ -33,6 +33,7 @@
     "@radix-ui/react-navigation-menu": "^1.1.4",
     "@rainbow-me/rainbowkit": "2",
     "@react-spring/web": "^9.7.3",
+    "@supabase/supabase-js": "^2.48.1",
     "@tanstack/react-query": "^5.20.1",
     "@types/react-table": "^7.7.20",
     "@uniswap/permit2-sdk": "^1.2.1",
