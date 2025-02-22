@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Memory } from '@/lib/supabase/types'
 
-export function useMemories() {
-  const [memories, setMemories] = useState<Memory[]>([])
+export function useActivities() {
+  const [activities, setActivities] = useState<Memory[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchMemories = async () => {
+  const fetchActivities = async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -17,26 +17,26 @@ export function useMemories() {
       }
       
       const data = await response.json()
-      setMemories(data)
+      setActivities(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
-      console.error('Error fetching memories:', err)
+      console.error('Error fetching activities:', err)
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchMemories()
+    fetchActivities()
   }, [])
 
   // Provide a refresh function for manual refetching
   const refresh = () => {
-    fetchMemories()
+    fetchActivities()
   }
 
   return {
-    memories,
+    activities,
     isLoading,
     error,
     refresh

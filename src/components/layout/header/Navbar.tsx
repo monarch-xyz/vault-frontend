@@ -40,15 +40,6 @@ export function NavbarLink({
 export function NavbarTitle() {
   return (
     <div className="flex h-8 items-center justify-start gap-4">
-      <Image src={logo} alt="logo" height={30} />
-      <Link
-        href="/"
-        passHref
-        className="text-center font-zen text-lg font-medium text-primary no-underline"
-        aria-label="build-onchain-apps Github repository"
-      >
-        Wowo
-      </Link>
     </div>
   );
 }

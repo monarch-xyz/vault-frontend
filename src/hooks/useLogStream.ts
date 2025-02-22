@@ -3,9 +3,16 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 
 export type LogEntry = {
-  category: 'event' | 'think' | 'conversation' | 'memory' | 'action' | 'error';
-  topic: string;
-  details: string;
+  category: 'actions' | 'think' | 'report' | 'conversation';
+  type: string;
+  details: {
+    text: string;
+    metadata?: {
+      txHash?: string;
+      amount?: string;
+      sender?: string;
+    };
+  };
   timestamp: string;
 };
 
@@ -105,15 +112,20 @@ export function useLogStream() {
     };
   }, [connect]);
 
-  const getLogsByCategory = (category: LogEntry['category']) => {
-    return logs.filter((log) => log.category === category);
+  const getLogsByType = (category: LogEntry['category'], type?: string) => {
+    return logs.filter((log) => {
+      if (type) {
+        return log.category === category && log.type.startsWith(type);
+      }
+      return log.category === category;
+    });
   };
 
   return {
     logs,
     isConnected,
     error,
-    getLogsByCategory,
+    getLogsByType,
     reconnect: connect,
   };
 }

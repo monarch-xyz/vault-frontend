@@ -20,7 +20,7 @@ export default async function handler(
   try {
     const { data, error } = await supabase
       .from('memories')
-      .select('id, created_at, text, type')
+      .select('id, created_at, text, type, sub_type, action_id')
       .order('created_at', { ascending: false })
 
     if (error) throw error
