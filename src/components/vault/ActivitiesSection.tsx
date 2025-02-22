@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { useActivities } from '@/hooks/useActivities'
-import { format } from 'date-fns'
+import moment from 'moment'
 import { Badge } from '@/components/common/Badge'
-import { BiBrain, BiTransfer } from 'react-icons/bi'
+import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp } from 'react-icons/bi'
 import { TbReportAnalytics } from 'react-icons/tb'
 import { Spinner } from '@/components/common/Spinner'
 
@@ -56,19 +57,21 @@ type ActivityEntry = {
 };
 
 function ActivityMessage({ entry }: { entry: ActivityEntry }) {
-  const { type, sub_type, text, timestamp, metadata } = entry;
+  const [isExpanded, setIsExpanded] = useState(false)
+  const { type, sub_type, text, timestamp, metadata } = entry
+  const activityType = activityTypes[type as keyof typeof activityTypes]
 
-  const activityType = activityTypes[type as keyof typeof activityTypes];
-
-  if (!activityType) {
-    console.log(entry);
-    return null;
-  }
-
-  console.log(entry, activityType);
+  if (!activityType) return null
   
   return (
-    <div className={`rounded-lg border p-3 ${activityType.bgColor} ${activityType.borderColor}`}>
+    <div 
+      className={`
+        rounded-lg border p-3 cursor-pointer transition-all
+        ${activityType.bgColor} ${activityType.borderColor}
+        hover:bg-opacity-75
+      `}
+      onClick={() => setIsExpanded(!isExpanded)}
+    >
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <activityType.icon className={`h-4 w-4 ${activityType.iconColor}`} />
@@ -86,15 +89,30 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
             </span>
           )}
         </div>
-        <span className="text-[10px] text-gray-500">
-          {format(new Date(timestamp), 'HH:mm:ss')}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-500">
+            {moment(timestamp).fromNow()}
+          </span>
+          {isExpanded ? (
+            <BiChevronUp className="h-4 w-4 text-gray-400" />
+          ) : (
+            <BiChevronDown className="h-4 w-4 text-gray-400" />
+          )}
+        </div>
       </div>
-      <div className="mb-3">
-        <p className="text-sm whitespace-pre-wrap">
+      <div 
+        className={`
+          transition-all duration-200 ease-in-out
+          ${isExpanded ? 'max-h-[800px]' : 'max-h-12 overflow-hidden'}
+        `}
+      >
+        <p className={`
+          text-sm whitespace-pre-wrap
+          ${!isExpanded && 'line-clamp-2'}
+        `}>
           {text}
         </p>
-        {metadata?.txHash && (
+        {metadata?.txHash && isExpanded && (
           <div className="mt-2 text-xs text-gray-500">
             TX: {metadata.txHash.slice(0, 6)}...{metadata.txHash.slice(-4)}
           </div>
@@ -105,14 +123,14 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
 }
 
 export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: string }) {
-  const { activities, isLoading, error } = useActivities();
+  const { activities, isLoading, error } = useActivities()
   
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Spinner size={24} />
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -121,7 +139,7 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
         <p>Failed to load activities</p>
         <p className="text-sm">{error}</p>
       </div>
-    );
+    )
   }
 
   // Combine and format entries
@@ -150,14 +168,14 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
     : activityTypes[selectedType as keyof typeof activityTypes]?.iconColor;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
       {filteredEntries.length === 0 ? (
-        <div className="flex h-full flex-col items-center justify-center space-y-2 text-center">
+        <div className="flex h-full flex-col items-center justify-center space-y-2 text-center py-8">
           <EmptyIcon className={`h-8 w-8 ${emptyIconColor} opacity-40`} />
           <div className="text-sm text-gray-500">
             {selectedType === 'all' 
               ? 'No activities yet...'
-              : `No ${activityTypes[selectedType as keyof typeof activityTypes]?.label.toLowerCase()} yet...`
+              : `No ${activityTypes[selectedType as keyof typeof activityTypes]?.label.toLowerCase()} activities yet...`
             }
           </div>
         </div>
@@ -170,5 +188,5 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
         ))
       )}
     </div>
-  );
+  )
 } 

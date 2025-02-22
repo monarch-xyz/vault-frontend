@@ -131,7 +131,7 @@ function ActivityCard() {
   return (
     <Card className="bg-surface h-[600px] p-4">
       <CardHeader className="flex items-center justify-between">
-        <span className="text-base text-lg">
+        <span className="text-base font-medium">
           {showChat ? 'Public Chat' : 'Agent Activity'}
         </span>
         <Tooltip content={showChat ? 'Show Activities' : 'Show Chat'}>
@@ -150,10 +150,10 @@ function ActivityCard() {
         ) : (
           <div className="flex flex-col h-full">
             {/* Activity Type Selector */}
-            <div className="flex gap-2 p-2 border-b mb-4 items-center">
+            <div className="flex justify-center gap-2 p-2 border-b mb-4">
               <button
                 onClick={() => setSelectedType('all')}
-                className={`px-3 py-1.5 rounded-lg transition-all text-sm
+                className={`px-2.5 py-1 rounded-lg transition-all text-xs
                   ${selectedType === 'all' 
                     ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' 
                     : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900'
@@ -175,23 +175,23 @@ function ActivityCard() {
                     <button
                       onClick={() => setSelectedType(type)}
                       className={`
-                        flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all
+                        flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all text-xs
                         ${isSelected 
                           ? `${config.bgColor} ${config.iconColor}` 
                           : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900'
                         }
                       `}
                     >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-sm">{config.label}</span>
+                      <Icon className="w-3.5 h-3.5" />
+                      <span>{config.label}</span>
                     </button>
                   </Tooltip>
                 );
               })}
             </div>
 
-            {/* Activity Feed */}
-            <div className="flex-1 overflow-y-auto space-y-4">
+            {/* Activity Feed with custom scrollbar */}
+            <div className="flex-1 pr-2 overflow-y-auto custom-scrollbar">
               <ActivitiesSection selectedType={selectedType} />
             </div>
           </div>

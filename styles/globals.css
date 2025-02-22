@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 /* Custom scrollbar styling */
 .custom-scrollbar {
   scrollbar-width: thin;
@@ -76,3 +81,28 @@
 .dark .custom-scrollbar:hover::after {
   background-color: rgba(255, 255, 255, 0.2);
 }
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    border-radius: 100vh;
+    background: var(--scrollbar-track, #f3f4f6);
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb, #d1d5db);
+    border-radius: 100vh;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover, #9ca3af);
+  }
+} 
