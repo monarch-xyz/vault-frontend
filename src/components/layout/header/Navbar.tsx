@@ -1,10 +1,8 @@
 'use client';
 
 import { clsx } from 'clsx';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import logo from '../../imgs/logo.png';
 import AccountConnect from './AccountConnect';
 
 export function NavbarLink({
@@ -19,7 +17,7 @@ export function NavbarLink({
   target?: string;
 }) {
   const pathname = usePathname();
-  const isActive = matchKey ? pathname.includes(matchKey) : pathname === href;
+  const isActive = pathname && matchKey ? pathname.includes(matchKey) : pathname === href;
 
   return (
     <Link
