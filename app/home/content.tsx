@@ -131,7 +131,7 @@ function ActivityCard() {
   return (
     <Card className="bg-surface h-[600px] p-4">
       <CardHeader className="flex items-center justify-between">
-        <span className="text-base font-medium">
+        <span className="text-lg font-medium">
           {showChat ? 'Public Chat' : 'Agent Activity'}
         </span>
         <Tooltip content={showChat ? 'Show Activities' : 'Show Chat'}>

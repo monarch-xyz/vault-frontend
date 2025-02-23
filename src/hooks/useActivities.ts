@@ -8,7 +8,6 @@ export function useActivities() {
 
   const fetchActivities = async () => {
     try {
-      setIsLoading(true)
       setError(null)
       
       const response = await fetch('/api/memories')
@@ -26,19 +25,24 @@ export function useActivities() {
     }
   }
 
+  // Initial fetch
   useEffect(() => {
     fetchActivities()
   }, [])
 
-  // Provide a refresh function for manual refetching
-  const refresh = () => {
-    fetchActivities()
-  }
+  // Set up periodic refresh every minute (60000ms)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchActivities()
+    }, 60000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   return {
     activities,
     isLoading,
     error,
-    refresh
+    refresh: fetchActivities // Manual refresh function
   }
 } 

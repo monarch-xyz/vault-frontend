@@ -3,10 +3,10 @@ import { useState, useEffect } from 'react'
 export type ChatMessage = {
   id: string
   created_at: string
+  // admin, agent or [user address]
   sender: string
   tx?: string
   text: string
-  from: 'admin' | 'agent' | 'user'
 }
 
 export function useChat() {

@@ -4,10 +4,12 @@ import { FaRobot } from 'react-icons/fa'
 import { BsChatDots } from 'react-icons/bs'
 import { useChat, ChatMessage } from '@/hooks/useChat'
 import { Spinner } from '@/components/common/Spinner'
+import { isAddress } from 'viem'
 
 function ChatBubble({ message }: { message: ChatMessage }) {
-  const isAgent = message.from === 'agent'
-  const isAdmin = message.from === 'admin'
+  console.log('message', message)
+  const isAgent = message.sender === 'agent'
+  const isAdmin = message.sender === 'admin'
 
   return (
     <div className="rounded-lg border border-green-200 bg-green-50/30 p-3 dark:border-green-800/50 dark:bg-green-900/10">
@@ -21,7 +23,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
             >
               <div className="flex items-center gap-1">
                 <FaRobot className="h-3 w-3" />
-                <span className="text-[10px]">Wowo</span>
+                <span className="text-[10px]"> agent </span>
               </div>
             </Badge>
           ) : isAdmin ? (
@@ -37,7 +39,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
               USER
             </Badge>
           )}
-          {message.sender && (
+          {isAddress(message.sender) && (
             <span className="text-xs text-gray-500">
               {message.sender.slice(0, 6)}...{message.sender.slice(-4)}
             </span>
@@ -84,7 +86,7 @@ export function ChatSection() {
       {messages.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center space-y-2 text-center">
           <BsChatDots className="h-8 w-8 text-green-600 dark:text-green-400 opacity-40" />
-          <div className="text-sm text-gray-500">Deposit to attach a message to Wowo!</div>
+          <div className="text-sm text-gray-500">Deposit to attach a message to the agent!</div>
         </div>
       ) : (
         messages.map((message) => (

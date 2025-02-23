@@ -20,7 +20,7 @@ export default async function handler(
   try {
     const { data, error } = await supabase
       .from('user-messages')
-      .select('id, created_at, sender, tx')
+      .select('id, created_at, sender, tx, text')
       .order('created_at', { ascending: false })
 
     if (error) throw error
