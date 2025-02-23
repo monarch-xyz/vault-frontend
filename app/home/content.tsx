@@ -6,6 +6,7 @@ import { Tooltip } from '@nextui-org/tooltip';
 import { format } from 'date-fns';
 import Image from 'next/image';
 import { BiBrain, BiTransfer } from 'react-icons/bi';
+import { TbLogs } from "react-icons/tb";
 import { BsChatDots } from 'react-icons/bs';
 import { TbReportAnalytics } from 'react-icons/tb';
 import { Button } from '@/components/common/Button';
@@ -139,7 +140,7 @@ function ActivityCard() {
             onClick={() => setShowChat(!showChat)}
             className="rounded-full p-1.5 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
           >
-            <BsChatDots className="h-5 w-5" />
+            {showChat ? <TbLogs className="h-5 w-5" /> : <BsChatDots className="h-5 w-5" />}
           </button>
         </Tooltip>
       </CardHeader>
