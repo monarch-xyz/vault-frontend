@@ -102,13 +102,13 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
       </div>
       <div 
         className={`
-          transition-all duration-200 ease-in-out
-          ${isExpanded ? 'max-h-[800px]' : 'max-h-12 overflow-hidden'}
+          overflow-hidden transition-all duration-200 ease-in-out
+          ${isExpanded ? 'max-h-[300px] overflow-y-auto' : 'max-h-12'}
         `}
       >
         <p className={`
           text-sm whitespace-pre-wrap
-          ${!isExpanded && 'line-clamp-2'}
+          ${!isExpanded ? 'line-clamp-2' : ''}
         `}>
           {text}
         </p>
