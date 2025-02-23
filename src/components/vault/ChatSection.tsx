@@ -11,8 +11,22 @@ function ChatBubble({ message }: { message: ChatMessage }) {
   const isAgent = message.sender === 'agent'
   const isAdmin = message.sender === 'admin'
 
+  // Get bubble style based on sender type
+  const bubbleStyle = isAgent
+    ? "rounded-lg border border-green-200 bg-green-50/30 p-3 dark:border-green-800/50 dark:bg-green-900/10"
+    : isAdmin
+    ? "rounded-lg border border-blue-200 bg-blue-50/30 p-3 dark:border-blue-800/50 dark:bg-blue-900/10"
+    : "rounded-lg border border-gray-200 bg-gray-50/30 p-3 dark:border-gray-800/50 dark:bg-gray-900/10"
+
+  // Get text style based on sender type
+  const textStyle = isAgent
+    ? "whitespace-pre-wrap text-sm text-green-800 dark:text-green-200"
+    : isAdmin
+    ? "whitespace-pre-wrap text-sm text-blue-800 dark:text-blue-200"
+    : "whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200"
+
   return (
-    <div className="rounded-lg border border-green-200 bg-green-50/30 p-3 dark:border-green-800/50 dark:bg-green-900/10">
+    <div className={bubbleStyle}>
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {isAgent ? (
@@ -27,7 +41,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
               </div>
             </Badge>
           ) : isAdmin ? (
-            <Badge variant="success" size="sm">
+            <Badge variant="default" size="sm">
               ADMIN
             </Badge>
           ) : (
@@ -49,7 +63,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
           {format(new Date(message.created_at), 'HH:mm:ss')}
         </span>
       </div>
-      <p className="whitespace-pre-wrap text-sm text-green-800 dark:text-green-200">
+      <p className={textStyle}>
         {message.text}
       </p>
       {message.tx && (
