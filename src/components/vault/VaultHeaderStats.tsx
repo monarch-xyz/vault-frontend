@@ -30,32 +30,32 @@ function MarketAllocationRow({ market, amount, totalAssets }: {
 
   return (
     <div className="rounded-lg bg-hovered p-4 border border-divider">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
           {token?.img && (
             <Image 
               src={token.img} 
               alt={market.collateralAsset.symbol} 
-              width={32} 
-              height={32} 
+              width={24} 
+              height={24} 
               className="rounded-full"
             />
           )}
           <div>
-            <div className="text-base font-medium">{market.collateralAsset.symbol}</div>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm font-medium">{market.collateralAsset.symbol}</div>
+            <div className="text-xs text-gray-500">
               {formatBalance(amount, 6)} USDC ({percentage.toFixed(1)}%)
             </div>
           </div>
         </div>
         <div className="text-right">
-          <div className="text-sm text-gray-500">APY</div>
-          <div className="text-base font-medium text-primary">
+          <div className="text-xs text-gray-500">APY</div>
+          <div className="text-sm font-medium text-primary">
             {(market.state.supplyApy * 100).toFixed(1)}%
           </div>
         </div>
       </div>
-      <div className="h-1.5 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+      <div className="h-1 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
         <div 
           className="h-full bg-primary rounded-full transition-all"
           style={{ width: `${percentage}%` }}
@@ -103,7 +103,8 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm text-gray-500">M1 Smart Vault</h3>
-                <Tooltip
+              </div>
+              <Tooltip
                   content={
                     <TooltipContent
                       icon={<RiRobot2Fill className="h-4 w-4 text-primary" />}
@@ -118,16 +119,6 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                     <BsQuestionCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                   </div>
                 </Tooltip>
-              </div>
-              <button
-                onClick={() => refetch()}
-                className={`rounded-full p-1 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800
-                  ${isRefetching ? 'animate-spin' : ''}`}
-                disabled={isRefetching}
-                title="Refresh vault data"
-              >
-                <IoMdRefresh className="h-4 w-4" />
-              </button>
             </div>
             <div className="flex gap-4">
               <div>
@@ -211,9 +202,9 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         classNames={{
           base: "bg-surface rounded-lg font-zen",
           header: "border-b border-divider",
-          body: "p-6",
+          body: "p-8",
         }}
-        size="2xl"
+        size="xl"
       >
         <ModalContent>
           <ModalHeader className="p-6">
@@ -233,7 +224,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
             </div>
           </ModalHeader>
           <ModalBody>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               {markets && vault?.state.allocation
                 .sort((a, b) => Number(b.supplyAssets) - Number(a.supplyAssets))
                 .map((allocation: any) => {
