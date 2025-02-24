@@ -168,7 +168,7 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
     : activityTypes[selectedType as keyof typeof activityTypes]?.iconColor;
 
   return (
-    <div className="space-y-2 max-h-[500px] overflow-y-auto custom-scrollbar pr-2">
+    <div className="h-full overflow-y-auto hide-scrollbar">
       {filteredEntries.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center space-y-2 text-center py-8">
           <EmptyIcon className={`h-8 w-8 ${emptyIconColor} opacity-40`} />
@@ -180,12 +180,14 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
           </div>
         </div>
       ) : (
-        filteredEntries.map((entry, index) => (
-          <ActivityMessage 
-            key={entry.timestamp + index}
-            entry={entry}
-          />
-        ))
+        <div className="space-y-2">
+          {filteredEntries.map((entry, index) => (
+            <ActivityMessage 
+              key={entry.timestamp + index}
+              entry={entry}
+            />
+          ))}
+        </div>
       )}
     </div>
   )

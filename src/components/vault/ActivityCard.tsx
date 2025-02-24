@@ -38,7 +38,7 @@ export function ActivityCard() {
   return (
     <Card className="bg-surface h-[600px] p-4">
       <CardHeader className="flex items-center justify-between">
-        <span className="text-lg font-medium">Activities</span>
+        <span className="text-lg font-medium">Agent Activities</span>
       </CardHeader>
 
       <CardBody className="pt-4">
@@ -67,8 +67,10 @@ export function ActivityCard() {
           </div>
 
           {/* Activity Feed */}
-          <div className="flex-1 pr-2 overflow-y-auto custom-scrollbar">
-            <ActivitiesSection selectedType={selectedType} />
+          <div className="flex-1 overflow-y-auto hide-scrollbar">
+            <div className="pr-2">
+              <ActivitiesSection selectedType={selectedType} />
+            </div>
           </div>
         </div>
       </CardBody>

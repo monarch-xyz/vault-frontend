@@ -5,6 +5,7 @@ import Header from '@/components/layout/header/Header';
 import { VaultInfoCard } from '@/components/vault/VaultInfoCard';
 import { LiveStatusCard } from '@/components/vault/LiveStatusCard';
 import { ActivityCard } from '@/components/vault/ActivityCard';
+import { VaultHeaderStats } from '@/components/vault/VaultHeaderStats';
 
 const USDC = {
   symbol: 'USDC',
@@ -21,19 +22,18 @@ function VaultContent() {
     <>
       <Header />
       <div className="container mx-auto px-6 py-8 font-zen">
+        {/* Top Header Section */}
+        <div className="mb-8">
+          <VaultHeaderStats vaultAddress={vaultAddress} />
+        </div>
+
+        {/* Main Content Section */}
         <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-5">
+          <div className="col-span-4">
             <ActivityCard />
           </div>
-
-          <div className="col-span-7 space-y-6">
-            <div className="h-[280px]">
-              <VaultInfoCard vaultAddress={vaultAddress} />
-            </div>
-            
-            <div className="h-[400px]">
-              <LiveStatusCard />
-            </div>
+          <div className="col-span-8">
+            <LiveStatusCard />
           </div>
         </div>
       </div>
