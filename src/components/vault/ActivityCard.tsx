@@ -24,7 +24,7 @@ export const activityTypes = {
   },
   action: {
     label: 'Actions',
-    description: 'On-chain transactions and their status',
+    description: 'The on-chain transactions, web searches, and other actions',
     icon: BiTransfer,
     bgColor: 'bg-green-50/50 dark:bg-green-950/30',
     borderColor: 'border-green-100 dark:border-green-900',

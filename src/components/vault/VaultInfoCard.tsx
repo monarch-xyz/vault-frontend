@@ -18,16 +18,16 @@ const USDC = {
   address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
 
-export function VaultInfoCard({ vault, vaultAddress }: { vault: any; vaultAddress: string }) {
+export function VaultInfoCard({ vaultAddress }: { vaultAddress: string }) {
   const { markets } = useMarkets();
-  const { dataUpdatedAt, refetch, isRefetching } = useVault(vaultAddress);
+  const { dataUpdatedAt, refetch, isLoading, isRefetching, data: vault } = useVault(vaultAddress);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [showAllMarkets, setShowAllMarkets] = useState(false);
 
-  const totalAssets = BigInt(vault.state.totalAssets);
+  const totalAssets = vault ? BigInt(vault.state.totalAssets) : BigInt(0);
 
   // Sort allocations by amount
-  const sortedAllocations = markets ? [...vault.state.allocation]
+  const sortedAllocations = (markets && vault) ? [...vault.state.allocation]
     .sort((a, b) => Number(b.supplyAssets) - Number(a.supplyAssets)) : [];
 
   const displayedAllocations = showAllMarkets 
@@ -67,13 +67,13 @@ export function VaultInfoCard({ vault, vaultAddress }: { vault: any; vaultAddres
           <div className="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-800">
             <div className="text-xs text-gray-500">TVL</div>
             <div className="text-base font-medium">
-              {formatReadable(formatBalance(totalAssets, vault.asset.decimals))} USDC
+              {formatReadable(formatBalance(totalAssets, 6))} USDC
             </div>
           </div>
           <div className="rounded-lg bg-gray-50 px-3 py-2 dark:bg-gray-800">
             <div className="text-xs text-gray-500">Current APY</div>
             <div className="text-base font-medium text-primary">
-              {(vault.state.apy * 100).toFixed(2)}%
+              {vault?.state.apy ? (vault.state.apy * 100).toFixed(2) : '0.00'}%
             </div>
           </div>
         </div>
@@ -90,6 +90,8 @@ export function VaultInfoCard({ vault, vaultAddress }: { vault: any; vaultAddres
             <div className="grid grid-cols-2 gap-2">
               {displayedAllocations.map((allocation: any) => {
                 const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
+
+                console.log('allocation + found market', allocation, market);
                 if (!market) return null;
                 
                 const amount = BigInt(allocation.supplyAssets);
@@ -116,7 +118,7 @@ export function VaultInfoCard({ vault, vaultAddress }: { vault: any; vaultAddres
                       <div>
                         <div className="text-sm">{market.collateralAsset.symbol}</div>
                         <div className="text-xs text-gray-500">
-                          {formatBalance(amount, vault.asset.decimals)} USDC
+                          {formatBalance(amount, 6)} USDC
                         </div>
                       </div>
                     </div>

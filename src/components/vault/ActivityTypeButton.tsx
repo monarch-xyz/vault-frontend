@@ -1,4 +1,5 @@
 import { Tooltip } from '@nextui-org/tooltip';
+import { TooltipContent } from '../TooltipContent';
 
 interface ActivityTypeButtonProps {
   type: string;
@@ -18,9 +19,16 @@ export function ActivityTypeButton({ type, config, isSelected, onClick }: Activi
   
   return (
     <Tooltip 
-      content={config.description}
+      content={
+        <TooltipContent
+          title={config.label}
+          detail={config.description}
+          icon={<Icon className="h-4 w-4" />}
+        />
+      }
       delay={0}
       closeDelay={0}
+      placement="bottom"
     >
       <button
         onClick={onClick}

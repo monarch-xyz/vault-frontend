@@ -23,6 +23,7 @@ type VaultState = {
   totalAssets: number;
   totalAssetsUsd: number;
   allocation: VaultAllocation[];
+  lastUpdate: number;
 };
 
 type VaultData = {
@@ -37,7 +38,7 @@ type VaultResponse = {
   errors?: { message: string }[];
 };
 
-// Updated vault query
+// Updated vault query with timestamp
 const vaultQuery = `
   query getVault {
     vaultByAddress(address: "${vaultAddress}", chainId: 8453) {
@@ -68,8 +69,16 @@ const graphqlFetcher = async (
 ): Promise<VaultResponse> => {
   const response = await fetch(URLS.MORPHO_BLUE_API, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, variables }),
+    headers: { 
+      'Content-Type': 'application/json',
+      // Add cache control headers
+      'Cache-Control': 'no-cache',
+      'Pragma': 'no-cache'
+    },
+    body: JSON.stringify({ 
+      query, 
+      variables
+    }),
   });
 
   if (!response.ok) {
@@ -85,7 +94,7 @@ const graphqlFetcher = async (
   return result;
 };
 
-const POLLING_INTERVAL = 30000; // 30 seconds
+const POLLING_INTERVAL = 20000; // 30 seconds
 
 export const useVault = (vaultAddress: string) => {
   return useQuery<VaultData>({
@@ -94,8 +103,10 @@ export const useVault = (vaultAddress: string) => {
       const response = await graphqlFetcher(vaultQuery, {});
       return response.data.vaultByAddress;
     },
-    refetchInterval: POLLING_INTERVAL, // Add polling
-    refetchIntervalInBackground: true, // Continue polling in background
-    staleTime: POLLING_INTERVAL / 2, // Consider data stale after 15s
+    refetchInterval: POLLING_INTERVAL,
+    refetchIntervalInBackground: true,
+    staleTime: 0,
+    retry: 2,
+    retryDelay: 1000,
   });
 };
