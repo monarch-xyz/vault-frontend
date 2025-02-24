@@ -58,7 +58,7 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
       <ModalContent>
         <ModalHeader className="flex items-center gap-2 p-6 font-zen">
           <Image src={USDC.img} alt={USDC.symbol} width={24} height={24} />
-          <span className="text-xl font-zen">Deposit USDC</span>
+          <span className="text-xl font-medium font-zen">Deposit USDC</span>
         </ModalHeader>
         <ModalBody>
           <div className="space-y-6 font-zen">
@@ -98,7 +98,7 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Say hello to WoWo!"
+                placeholder="Say hello to Wowo!"
                 rows={4}
                 className="bg-hovered w-full rounded-sm p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               />
