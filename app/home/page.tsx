@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import HomeClient from './client-page';
 
 export const metadata: Metadata = {
-  title: 'Wowo',
-  description: 'Wowo in control',
+  title: 'Monarch Vault',
+  description: 'Monarch Vault',
 };
 
 export const dynamic = 'force-dynamic';

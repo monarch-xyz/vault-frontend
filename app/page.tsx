@@ -2,7 +2,7 @@ import { generateMetadata } from '@/utils/generateMetadata';
 import VaultPage from './home/content';
 
 export const metadata = generateMetadata({
-  title: 'Wowo',
+  title: 'Monarch Vault',
   description: 'Smart Agent for Morpho Vaults',
   images: 'themes.png',
   pathname: '',

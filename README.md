@@ -1,5 +1,5 @@
 <div align="center">
-  <h1> Wowo </h1>
+  <h1> Monarch Vault </h1>
   <img height=80 src="./imgs/logo.png"/>
   <h5 align="center"> Smart Agent for Morpho Vaults</h5>
 </div>
