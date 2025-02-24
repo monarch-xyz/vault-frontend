@@ -7,7 +7,6 @@ import { Spinner } from '@/components/common/Spinner'
 import { isAddress } from 'viem'
 
 function ChatBubble({ message }: { message: ChatMessage }) {
-  console.log('message', message)
   const isAgent = message.sender === 'agent'
   const isAdmin = message.sender === 'admin'
 
