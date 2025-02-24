@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardBody } from '@nextui-org/card';
 import { RiRobot2Fill } from 'react-icons/ri';
 import { ChatSection } from './ChatSection';
+import { AGENT_NAME } from '@/utils/constants';
 
 function AgentStatusSection() {
   return (
@@ -11,7 +12,7 @@ function AgentStatusSection() {
           <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
         </div>
         <span className="text-xs text-green-700 dark:text-green-300">
-          Agent Chilling
+          {AGENT_NAME} Chilling
         </span>
       </div>
     </div>

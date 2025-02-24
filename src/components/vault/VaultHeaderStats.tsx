@@ -13,6 +13,7 @@ import { TooltipContent } from '@/components/TooltipContent';
 import { RiRobot2Fill } from 'react-icons/ri';
 import { BsQuestionCircle } from 'react-icons/bs';
 import { Market } from '@/utils/types';
+import { AGENT_NAME } from '@/utils/constants';
 
 const USDC = {
   symbol: 'USDC',
@@ -21,6 +22,20 @@ const USDC = {
   address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
 
+function AllocationDescription() {
+  return (
+    <div className="mb-6 rounded-lg bg-primary/5 p-4">
+      <div className="flex items-center gap-2 text-primary mb-2">
+        <RiRobot2Fill className="h-4 w-4" />
+        <span className="font-medium text-sm">{AGENT_NAME} - AI Allocator</span>
+      </div>
+      <p className="text-sm text-gray-600 dark:text-gray-400">
+        {AGENT_NAME} manages your deposits by analyzing market conditions and automatically allocating funds to optimize returns while maintaining risk levels.
+      </p>
+    </div>
+  );
+}
+
 function MarketAllocationRow({ market, amount, totalAssets }: { 
   market: Market;
   amount: bigint;
@@ -28,8 +43,6 @@ function MarketAllocationRow({ market, amount, totalAssets }: {
 }) {
   const percentage = (Number(amount) / Number(totalAssets)) * 100;
   const token = findToken(market.collateralAsset.address, market.morphoBlue.chain.id);
-
-  // Calculate available liquidity from market data
   const totalSupplyAssets = BigInt(market.state.supplyAssets);
   const availableLiquidity = BigInt(market.state.liquidityAssets);
 
@@ -42,8 +55,9 @@ function MarketAllocationRow({ market, amount, totalAssets }: {
       className="rounded-lg bg-hovered p-4 border border-divider cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
       onClick={handleMarketClick}
     >
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-3">
+      {/* Top section: Market info + APY */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
           {token?.img && (
             <Image 
               src={token.img} 
@@ -53,43 +67,30 @@ function MarketAllocationRow({ market, amount, totalAssets }: {
               className="rounded-full"
             />
           )}
-          <div>
-            <div className="text-sm font-medium">{market.collateralAsset.symbol}</div>
-            <div className="text-xs text-gray-500">
-              {formatBalance(amount, 6)} USDC ({percentage.toFixed(1)}%)
-            </div>
-          </div>
+          <span className="text-sm font-medium">{market.collateralAsset.symbol}</span>
         </div>
-        <div className="text-right">
-          <div className="text-xs text-gray-500">APY</div>
-          <div className="text-sm font-medium text-primary">
-            {(market.state.supplyApy * 100).toFixed(1)}%
-          </div>
+        <div className="text-sm font-medium text-primary">
+          {(market.state.supplyApy * 100).toFixed(1)}% APY
         </div>
       </div>
 
-      {/* Market Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-2 mt-3">
-        <div>
-          <div className="text-xs text-gray-500">Total Supply</div>
-          <div className="text-sm">
-            {formatReadable(formatBalance(totalSupplyAssets, 6))} USDC
-          </div>
+      {/* Middle section: Allocation + Progress bar */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="text-xs text-gray-500">
+          {formatBalance(amount, 6)} USDC ({percentage.toFixed(1)}%)
         </div>
-        <div>
-          <div className="text-xs text-gray-500">Available Liquidity</div>
-          <div className="text-sm">
-            {formatReadable(formatBalance(availableLiquidity, 6))} USDC
-          </div>
+        <div className="flex-1 h-1 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+          <div 
+            className="h-full bg-primary rounded-full transition-all"
+            style={{ width: `${percentage}%` }}
+          />
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="h-1 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
-        <div 
-          className="h-full bg-primary rounded-full transition-all"
-          style={{ width: `${percentage}%` }}
-        />
+      {/* Bottom section: Market stats */}
+      <div className="flex items-center justify-between text-xs text-gray-500">
+        <div>Total Supply: {formatReadable(formatBalance(totalSupplyAssets, 6))} USDC</div>
+        <div>Available: {formatReadable(formatBalance(availableLiquidity, 6))} USDC</div>
       </div>
     </div>
   );
@@ -254,6 +255,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
             </div>
           </ModalHeader>
           <ModalBody>
+            <AllocationDescription />
             <div className="space-y-2">
               {markets && vault?.state.allocation
                 .sort((a, b) => Number(b.supplyAssets) - Number(a.supplyAssets))

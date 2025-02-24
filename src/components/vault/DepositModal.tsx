@@ -9,6 +9,7 @@ import { useDepositVault } from '@/hooks/useDepositVault';
 import { formatBalance } from '@/utils/balance';
 import Image from 'next/image';
 import { BiBrain } from 'react-icons/bi';
+import { AGENT_NAME } from '@/utils/constants';
 
 const USDC = {
   symbol: 'USDC',
@@ -98,7 +99,7 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
               <textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Say hello to Wowo!"
+                placeholder={`Say hello to ${AGENT_NAME}!`}
                 rows={4}
                 className="bg-hovered w-full rounded-sm p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               />
