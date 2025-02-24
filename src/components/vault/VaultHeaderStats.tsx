@@ -67,7 +67,7 @@ function MarketAllocationRow({ market, amount, totalAssets }: {
 
 export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   const { markets } = useMarkets();
-  const { data: vault } = useVault(vaultAddress);
+  const { data: vault, refetch, isRefetching } = useVault();
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   
@@ -97,26 +97,37 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   return (
     <>
       <div className="grid grid-cols-3 gap-6 font-zen">
-        {/* Box 1: Vault Info */}
+        {/* Box 1: Vault Info - Updated with refresh */}
         <div className="rounded bg-surface p-6 shadow-sm">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm text-gray-500">M1 Smart Vault</h3>
-              <Tooltip
-                content={
-                  <TooltipContent
-                    icon={<RiRobot2Fill className="h-4 w-4 text-primary" />}
-                    title="M1 Smart Vault"
-                    detail="An AI-powered vault that automatically manages your deposits across multiple lending markets to maximize yield while maintaining optimal risk levels."
-                  />
-                }
-                placement="bottom"
-                className="rounded-sm"
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm text-gray-500">M1 Smart Vault</h3>
+                <Tooltip
+                  content={
+                    <TooltipContent
+                      icon={<RiRobot2Fill className="h-4 w-4 text-primary" />}
+                      title="M1 Smart Vault"
+                      detail="An AI-powered vault that automatically manages your deposits across multiple lending markets to maximize yield while maintaining optimal risk levels."
+                    />
+                  }
+                  placement="bottom"
+                  className="rounded-sm"
+                >
+                  <div className="cursor-help">
+                    <BsQuestionCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                  </div>
+                </Tooltip>
+              </div>
+              <button
+                onClick={() => refetch()}
+                className={`rounded-full p-1 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800
+                  ${isRefetching ? 'animate-spin' : ''}`}
+                disabled={isRefetching}
+                title="Refresh vault data"
               >
-                <div className="cursor-help">
-                  <BsQuestionCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                </div>
-              </Tooltip>
+                <IoMdRefresh className="h-4 w-4" />
+              </button>
             </div>
             <div className="flex gap-4">
               <div>
@@ -193,7 +204,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         </div>
       </div>
 
-      {/* Modal - Updated style */}
+      {/* Modal - Updated with refresh */}
       <Modal 
         isOpen={isAllocationModalOpen} 
         onClose={() => setIsAllocationModalOpen(false)}
@@ -207,7 +218,18 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         <ModalContent>
           <ModalHeader className="p-6">
             <div className="flex items-center justify-between w-full">
-              <h3 className="text-lg font-medium font-zen">Market Allocations</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-lg font-medium font-zen">Market Allocations</h3>
+                <button
+                  onClick={() => refetch()}
+                  className={`rounded-full p-1 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800
+                    ${isRefetching ? 'animate-spin' : ''}`}
+                  disabled={isRefetching}
+                  title="Refresh allocation data"
+                >
+                  <IoMdRefresh className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </ModalHeader>
           <ModalBody>

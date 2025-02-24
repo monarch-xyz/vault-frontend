@@ -20,7 +20,7 @@ const USDC = {
 
 export function VaultInfoCard({ vaultAddress }: { vaultAddress: string }) {
   const { markets } = useMarkets();
-  const { dataUpdatedAt, refetch, isLoading, isRefetching, data: vault } = useVault(vaultAddress);
+  const { dataUpdatedAt, refetch, isLoading, isRefetching, data: vault } = useVault();
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [showAllMarkets, setShowAllMarkets] = useState(false);
 
