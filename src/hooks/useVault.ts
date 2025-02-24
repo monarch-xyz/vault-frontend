@@ -168,7 +168,6 @@ export const useVault = () => {
         // Calculate actual assets from shares
         const updatedAllocation = queryResponse.data.state.allocation.map(allocation => {
           const marketData = marketsData.find(m => m.marketId === allocation.market.uniqueKey);
-          console.log('pariging ', allocation.market.uniqueKey, marketData);
           if (!marketData) return allocation;
 
           // Calculate assets from shares using the formula:
