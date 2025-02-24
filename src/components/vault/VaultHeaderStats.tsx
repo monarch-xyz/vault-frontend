@@ -12,6 +12,7 @@ import { Tooltip } from '@nextui-org/tooltip';
 import { TooltipContent } from '@/components/TooltipContent';
 import { RiRobot2Fill } from 'react-icons/ri';
 import { BsQuestionCircle } from 'react-icons/bs';
+import { Market } from '@/utils/types';
 
 const USDC = {
   symbol: 'USDC',
@@ -21,15 +22,26 @@ const USDC = {
 };
 
 function MarketAllocationRow({ market, amount, totalAssets }: { 
-  market: any;
+  market: Market;
   amount: bigint;
   totalAssets: bigint;
 }) {
   const percentage = (Number(amount) / Number(totalAssets)) * 100;
   const token = findToken(market.collateralAsset.address, market.morphoBlue.chain.id);
 
+  // Calculate available liquidity from market data
+  const totalSupplyAssets = BigInt(market.state.supplyAssets);
+  const availableLiquidity = BigInt(market.state.liquidityAssets);
+
+  const handleMarketClick = () => {
+    window.open(`https://www.monarchlend.xyz/market/8453/${market.uniqueKey}`, '_blank');
+  };
+
   return (
-    <div className="rounded-lg bg-hovered p-4 border border-divider">
+    <div 
+      className="rounded-lg bg-hovered p-4 border border-divider cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+      onClick={handleMarketClick}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
           {token?.img && (
@@ -55,6 +67,24 @@ function MarketAllocationRow({ market, amount, totalAssets }: {
           </div>
         </div>
       </div>
+
+      {/* Market Stats */}
+      <div className="grid grid-cols-2 gap-4 mb-2 mt-3">
+        <div>
+          <div className="text-xs text-gray-500">Total Supply</div>
+          <div className="text-sm">
+            {formatReadable(formatBalance(totalSupplyAssets, 6))} USDC
+          </div>
+        </div>
+        <div>
+          <div className="text-xs text-gray-500">Available Liquidity</div>
+          <div className="text-sm">
+            {formatReadable(formatBalance(availableLiquidity, 6))} USDC
+          </div>
+        </div>
+      </div>
+
+      {/* Progress bar */}
       <div className="h-1 w-full rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
         <div 
           className="h-full bg-primary rounded-full transition-all"

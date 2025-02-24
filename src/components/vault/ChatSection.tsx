@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { format, formatDistanceToNow } from 'date-fns'
 import { Badge } from '@/components/common/Badge'
 import { FaRobot } from 'react-icons/fa'
 import { BsChatDots } from 'react-icons/bs'
@@ -58,8 +58,8 @@ function ChatBubble({ message }: { message: ChatMessage }) {
             </span>
           )}
         </div>
-        <span className="text-[10px] text-gray-500">
-          {format(new Date(message.created_at), 'HH:mm:ss')}
+        <span className="text-[10px] text-gray-500" title={format(new Date(message.created_at), 'HH:mm:ss')}>
+          {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
         </span>
       </div>
       <p className={textStyle}>
