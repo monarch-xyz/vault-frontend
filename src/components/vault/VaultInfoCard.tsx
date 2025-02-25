@@ -91,7 +91,6 @@ export function VaultInfoCard({ vaultAddress }: { vaultAddress: string }) {
               {displayedAllocations.map((allocation: any) => {
                 const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
 
-                console.log('allocation + found market', allocation, market);
                 if (!market) return null;
                 
                 const amount = BigInt(allocation.supplyAssets);

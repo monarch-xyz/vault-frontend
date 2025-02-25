@@ -159,9 +159,9 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                 </div>
               </div>
               <div>
-                <div className="text-xs text-gray-500">All time APY</div>
+                <div className="text-xs text-gray-500">Daily APY</div>
                 <div className="text-sm text-primary">
-                  {vault?.state.allTimeApy ? (vault.state.allTimeApy * 100).toFixed(2) : '0.00'}%
+                  {vault?.state.dailyApy ? (vault.state.dailyApy * 100).toFixed(2) : '0.00'}%
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { usePublicClient } from 'wagmi';
 import { URLS } from '@/utils/urls';
-import { useMemo, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MORPHO } from '@/utils/morpho';
 import morphoABI from '@/abis/morpho';
 
@@ -22,7 +22,7 @@ type VaultAsset = {
 };
 
 type VaultState = {
-  allTimeApy: number;
+  dailyApy: number;
   apy: number;
   totalAssets: number;
   totalAssetsUsd: number;
@@ -52,7 +52,7 @@ const vaultQuery = `
   query getVault {
     vaultByAddress(address: "${vaultAddress}", chainId: 8453) {
       state {
-        allTimeApy
+        dailyApy
         apy
         totalAssets
         totalAssetsUsd
@@ -147,8 +147,6 @@ export const useVault = () => {
               args: [allocation.market.uniqueKey as `0x${string}`],
             }),
           ]);
-
-          console.log(position, marketStateArray);
 
           // Parse market state array - we only need totalSupplyAssets and totalSupplyShares
           const [totalSupplyAssets, totalSupplyShares] = marketStateArray as [bigint, bigint, bigint, bigint, bigint, bigint];

@@ -65,8 +65,6 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
 
   if (!activityType) return null
 
-  console.log('text', text)
-
   return (
     <div 
       className={`
