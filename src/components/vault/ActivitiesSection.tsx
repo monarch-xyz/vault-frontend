@@ -6,6 +6,7 @@ import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp } from 'react-icons/bi'
 import { TbReportAnalytics } from 'react-icons/tb'
 import { Spinner } from '@/components/common/Spinner'
 import ReactMarkdown from 'react-markdown'
+import { MarkdownText } from '@/components/MarkdownText'
 
 const activityTypes = {
   report: {
@@ -113,36 +114,7 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
           text-sm
           ${!isExpanded ? 'line-clamp-2' : ''}
         `}>
-          <ReactMarkdown
-            components={{
-              strong: ({ children }) => (
-                <span className="font-medium text-sm">{children}</span>
-              ),
-              h2: ({ children }) => (
-                <span className="block font-medium text-base text-gray-800 dark:text-gray-200 pt-2">{children}</span>
-              ),
-              h3: ({ children }) => (
-                <span className="block font-medium text-base text-gray-800 dark:text-gray-200 pt-1.5">{children}</span>
-              ),
-              ul: ({ children }) => (
-                <span className="block">{children}</span>
-              ),
-              li: ({ children }) => (
-                <span className="flex gap-2">
-                  <span className="text-gray-500"> - </span>
-                  <span>{children}</span>
-                </span>
-              ),
-              p: ({ children }) => (
-                <span className="inline">{children}</span>
-              ),
-              hr: () => (
-                <div className="my-2 border-t border-gray-200 dark:border-gray-800" />
-              ),
-            }}
-          >
-            {text}
-          </ReactMarkdown>
+          <MarkdownText text={text} />
         </div>
         {metadata?.txHash && isExpanded && (
           <div className="mt-2 text-xs text-gray-500">

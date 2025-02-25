@@ -5,6 +5,7 @@ import { BsChatDots } from 'react-icons/bs'
 import { useChat, ChatMessage } from '@/hooks/useChat'
 import { Spinner } from '@/components/common/Spinner'
 import { isAddress } from 'viem'
+import { MarkdownText } from '@/components/MarkdownText'
 
 function ChatBubble({ message }: { message: ChatMessage }) {
   const isAgent = message.sender === 'agent'
@@ -19,10 +20,10 @@ function ChatBubble({ message }: { message: ChatMessage }) {
 
   // Get text style based on sender type
   const textStyle = isAgent
-    ? "whitespace-pre-wrap text-sm text-green-800 dark:text-green-200"
+    ? "text-sm text-green-800 dark:text-green-200"
     : isAdmin
-    ? "whitespace-pre-wrap text-sm text-blue-800 dark:text-blue-200"
-    : "whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200"
+    ? "text-sm text-blue-800 dark:text-blue-200"
+    : "text-sm text-gray-800 dark:text-gray-200"
 
   return (
     <div className={bubbleStyle}>
@@ -63,7 +64,10 @@ function ChatBubble({ message }: { message: ChatMessage }) {
         </span>
       </div>
       <p className={textStyle}>
-        {message.text}
+        <MarkdownText 
+            text={message.text} 
+            className={textStyle}
+          />
       </p>
       {message.tx && (
         <div className="mt-2 text-xs text-gray-500">

@@ -36,7 +36,7 @@ export function ActivityCard() {
   const [selectedType, setSelectedType] = useState('all');
 
   return (
-    <Card className="bg-surface h-[600px] p-4 font-zen">
+    <Card className="bg-surface h-[600px] p-4 font-zen shadow-md rounded-md">
       <CardHeader className="flex items-center justify-between">
         <span className="text-lg">Agent Activities</span>
       </CardHeader>

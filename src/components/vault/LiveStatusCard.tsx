@@ -21,7 +21,7 @@ function AgentStatusSection() {
 
 export function LiveStatusCard() {
   return (
-    <Card className="bg-surface h-[600px] p-4 font-zen">
+    <Card className="bg-surface h-[600px] p-4 font-zen shadow-md rounded-md">
       <CardHeader className="flex items-center justify-between">
         <span className="text-lg">Live Status</span>
       </CardHeader>
