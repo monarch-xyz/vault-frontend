@@ -12,6 +12,9 @@ export function MarkdownText({ text }: MarkdownTextProps) {
         strong: ({ children }) => (
           <span className="font-medium text-sm">{children}</span>
         ),
+        h1: ({ children }) => (
+          <span className="block font-medium text-base pt-2">{children}</span>
+        ),
         h2: ({ children }) => (
           <span className="block font-medium text-base pt-2">{children}</span>
         ),

@@ -67,7 +67,7 @@ export function ActivityCard() {
           </div>
 
           {/* Activity Feed */}
-          <div className="flex-1 overflow-y-auto hide-scrollbar">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             <div className="pr-2">
               <ActivitiesSection selectedType={selectedType} />
             </div>

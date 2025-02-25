@@ -2,11 +2,13 @@ import { useState } from 'react'
 import { useActivities } from '@/hooks/useActivities'
 import moment from 'moment'
 import { Badge } from '@/components/common/Badge'
-import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp } from 'react-icons/bi'
+import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp, BiChevronRight } from 'react-icons/bi'
 import { TbReportAnalytics } from 'react-icons/tb'
 import { Spinner } from '@/components/common/Spinner'
 import ReactMarkdown from 'react-markdown'
 import { MarkdownText } from '@/components/MarkdownText'
+import { Modal, ModalContent, ModalBody } from '@nextui-org/modal'
+import { format } from 'date-fns'
 
 const activityTypes = {
   report: {
@@ -59,69 +61,109 @@ type ActivityEntry = {
 };
 
 function ActivityMessage({ entry }: { entry: ActivityEntry }) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const { type, sub_type, text, timestamp, metadata } = entry
   const activityType = activityTypes[type as keyof typeof activityTypes]
 
   if (!activityType) return null
 
   return (
-    <div 
-      className={`
-        rounded-lg border p-3 cursor-pointer transition-all
-        ${activityType.bgColor} ${activityType.borderColor}
-        hover:bg-opacity-75
-      `}
-      onClick={() => setIsExpanded(!isExpanded)}
-    >
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <activityType.icon className={`h-4 w-4 ${activityType.iconColor}`} />
-          <Badge
-            variant="default"
-            size="sm"
-            className={activityType.badgeColor}
-          >
-            {activityType.subTypes[sub_type as keyof typeof activityType.subTypes] || sub_type}
-          </Badge>
-          {metadata?.protocol && (
-            <span className="text-xs text-gray-500">
-              {metadata.protocol}
-              {metadata.apy && ` (${metadata.apy}% APY)`}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-gray-500">
-            {moment(timestamp).fromNow()}
-          </span>
-          {isExpanded ? (
-            <BiChevronUp className="h-4 w-4 text-gray-400" />
-          ) : (
-            <BiChevronDown className="h-4 w-4 text-gray-400" />
-          )}
-        </div>
-      </div>
+    <>
       <div 
         className={`
-          overflow-hidden transition-all duration-200 ease-in-out
-          ${isExpanded ? 'max-h-[300px] overflow-y-auto' : 'max-h-12'}
+          rounded-lg border p-3 cursor-pointer transition-all
+          ${activityType.bgColor} ${activityType.borderColor}
+          hover:bg-opacity-75 hover:scale-[1.01] group
+          overflow-hidden
         `}
+        onClick={() => setIsModalOpen(true)}
       >
-        <div className={`
-          text-sm
-          ${!isExpanded ? 'line-clamp-2' : ''}
-        `}>
-          <MarkdownText text={text} />
-        </div>
-        {metadata?.txHash && isExpanded && (
-          <div className="mt-2 text-xs text-gray-500">
-            TX: {metadata.txHash.slice(0, 6)}...{metadata.txHash.slice(-4)}
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <activityType.icon className={`h-4 w-4 ${activityType.iconColor}`} />
+            <Badge
+              variant="default"
+              size="sm"
+              className={activityType.badgeColor}
+            >
+              {activityType.subTypes[sub_type as keyof typeof activityType.subTypes] || sub_type}
+            </Badge>
+            {metadata?.protocol && (
+              <span className="text-xs text-gray-500">
+                {metadata.protocol}
+                {metadata.apy && ` (${metadata.apy}% APY)`}
+              </span>
+            )}
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-gray-500">
+              {moment(timestamp).fromNow()}
+            </span>
+            <BiChevronRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+          </div>
+        </div>
+        {/* Preview text without markdown */}
+        <div className="text-sm line-clamp-2 overflow-hidden">
+          {text}
+        </div>
       </div>
-    </div>
-  )
+
+      {/* Detail Modal - Updated styling */}
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        classNames={{
+          base: "bg-surface rounded-lg font-zen border shadow-lg",  // Solid background
+          body: "p-0",  // Remove default padding
+          backdrop: "bg-black/50",  // Darker backdrop
+        }}
+        size="2xl"
+      >
+        <ModalContent>
+          <ModalBody>
+            <div className="max-h-[80vh] overflow-y-auto hide-scrollbar">
+              <div className="p-8">
+                {/* Header */}
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <activityType.icon className={`h-4 w-4 ${activityType.iconColor}`} />
+                    <Badge
+                      variant="default"
+                      size="sm"
+                      className={activityType.badgeColor}
+                    >
+                      {activityType.subTypes[sub_type as keyof typeof activityType.subTypes] || sub_type}
+                    </Badge>
+                    {metadata?.protocol && (
+                      <span className="text-xs text-gray-500">
+                        {metadata.protocol}
+                        {metadata.apy && ` (${metadata.apy}% APY)`}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {format(new Date(timestamp), 'MMM d, yyyy HH:mm:ss')}
+                  </span>
+                </div>
+
+                {/* Content with markdown */}
+                <div className={`text-sm ${activityType.bgColor} rounded-lg p-4`}>
+                  <MarkdownText text={text} />
+                </div>
+
+                {/* Transaction hash if exists */}
+                {metadata?.txHash && (
+                  <div className="mt-4 text-xs text-gray-500">
+                    TX: {metadata.txHash.slice(0, 6)}...{metadata.txHash.slice(-4)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+    </>
+  );
 }
 
 export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: string }) {
