@@ -127,15 +127,14 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
 
   return (
     <>
-      <div className="grid grid-cols-3 gap-6 font-zen">
-        {/* Box 1: Vault Info - Updated with refresh */}
-        <div className="rounded bg-surface p-6 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 font-zen w-full">
+        {/* Box 1: Vault Info */}
+        <div className="rounded bg-surface p-4 md:p-6 shadow-sm">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm text-gray-500">M1 Smart Vault</h3>
-              </div>
-              <Tooltip
+                <Tooltip
                   content={
                     <TooltipContent
                       icon={<RiRobot2Fill className="h-4 w-4 text-primary" />}
@@ -150,8 +149,9 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                     <BsQuestionCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                   </div>
                 </Tooltip>
+              </div>
             </div>
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <div>
                 <div className="text-xs text-gray-500">Current APY</div>
                 <div className="text-sm text-primary">
@@ -169,7 +169,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         </div>
 
         {/* Box 2: Exposure */}
-        <div className="rounded bg-surface p-6 shadow-sm">
+        <div className="rounded bg-surface p-4 md:p-6 shadow-sm">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm text-gray-500">Market Exposure</h3>
@@ -181,7 +181,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                 View Details
               </Button>
             </div>
-            <div className="flex gap-1.5">
+            <div className="flex flex-wrap gap-1.5">
               {tokensWithAllocations?.map(({ token, allocation }) => (
                 <Tooltip 
                   key={token.address}
@@ -204,7 +204,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         </div>
 
         {/* Box 3: TVL */}
-        <div className="rounded bg-surface p-6 shadow-sm">
+        <div className="rounded bg-surface p-4 md:p-6 shadow-sm">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm text-gray-500">Total Value Locked</h3>
@@ -218,7 +218,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
             </div>
             <div className="flex items-center gap-2">
               <Image src={USDC.img} alt={USDC.symbol} width={20} height={20} />
-              <span className="text-lg">
+              <span className="text-base md:text-lg">
                 {formatReadable(formatBalance(totalAssets, 6))} USDC
               </span>
             </div>

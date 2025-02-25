@@ -5,7 +5,7 @@ import { AGENT_NAME } from '@/utils/constants';
 
 function AgentStatusSection() {
   return (
-    <div className="flex items-center justify-center gap-2 p-2 border-b border-secondary/30 mb-4">
+    <div className="flex items-center justify-center gap-2 p-2 border-b border-gray-200 dark:border-gray-800 mb-4">
       <div className="flex items-center gap-2 rounded-lg bg-green-50/50 dark:bg-green-950/30 px-3 py-1">
         <div className="relative flex items-center gap-1.5">
           <RiRobot2Fill className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
@@ -21,9 +21,9 @@ function AgentStatusSection() {
 
 export function LiveStatusCard() {
   return (
-    <Card className="bg-surface h-[600px] p-4">
+    <Card className="bg-surface h-[600px] p-4 font-zen">
       <CardHeader className="flex items-center justify-between">
-        <span className="text-lg font-medium">Live Status</span>
+        <span className="text-lg">Live Status</span>
       </CardHeader>
 
       <CardBody className="pt-4">

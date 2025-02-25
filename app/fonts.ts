@@ -8,6 +8,11 @@ export const zen = localFont({
       style: 'normal',
     },
     {
+      path: '../src/fonts/Zen_Kaku_Gothic_New/ZenKakuGothicNew-Medium.ttf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
       path: '../src/fonts/Zen_Kaku_Gothic_New/ZenKakuGothicNew-Bold.ttf',
       weight: '700',
       style: 'normal',

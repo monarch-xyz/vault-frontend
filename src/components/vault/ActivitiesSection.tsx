@@ -5,6 +5,7 @@ import { Badge } from '@/components/common/Badge'
 import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp } from 'react-icons/bi'
 import { TbReportAnalytics } from 'react-icons/tb'
 import { Spinner } from '@/components/common/Spinner'
+import ReactMarkdown from 'react-markdown'
 
 const activityTypes = {
   report: {
@@ -62,7 +63,9 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
   const activityType = activityTypes[type as keyof typeof activityTypes]
 
   if (!activityType) return null
-  
+
+  console.log('text', text)
+
   return (
     <div 
       className={`
@@ -106,12 +109,41 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
           ${isExpanded ? 'max-h-[300px] overflow-y-auto' : 'max-h-12'}
         `}
       >
-        <p className={`
-          text-sm whitespace-pre-wrap
+        <div className={`
+          text-sm
           ${!isExpanded ? 'line-clamp-2' : ''}
         `}>
-          {text}
-        </p>
+          <ReactMarkdown
+            components={{
+              strong: ({ children }) => (
+                <span className="font-medium text-sm">{children}</span>
+              ),
+              h2: ({ children }) => (
+                <span className="block font-medium text-base text-gray-800 dark:text-gray-200 pt-2">{children}</span>
+              ),
+              h3: ({ children }) => (
+                <span className="block font-medium text-base text-gray-800 dark:text-gray-200 pt-1.5">{children}</span>
+              ),
+              ul: ({ children }) => (
+                <span className="block">{children}</span>
+              ),
+              li: ({ children }) => (
+                <span className="flex gap-2">
+                  <span className="text-gray-500"> - </span>
+                  <span>{children}</span>
+                </span>
+              ),
+              p: ({ children }) => (
+                <span className="inline">{children}</span>
+              ),
+              hr: () => (
+                <div className="my-2 border-t border-gray-200 dark:border-gray-800" />
+              ),
+            }}
+          >
+            {text}
+          </ReactMarkdown>
+        </div>
         {metadata?.txHash && isExpanded && (
           <div className="mt-2 text-xs text-gray-500">
             TX: {metadata.txHash.slice(0, 6)}...{metadata.txHash.slice(-4)}
@@ -119,7 +151,7 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: string }) {

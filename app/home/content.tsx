@@ -16,23 +16,22 @@ const USDC = {
 
 const vaultAddress = '0x346aac1e83239db6a6cb760e95e13258ad3d1a6d';
 
-
-function VaultContent() {
+export default function HomeContent() {
   return (
     <>
       <Header />
-      <div className="container mx-auto px-6 py-8 font-zen">
-        {/* Top Header Section */}
-        <div className="mb-8">
-          <VaultHeaderStats vaultAddress={vaultAddress} />
-        </div>
+      <div className="container mx-auto space-y-6 p-4">
+        {/* Vault Header Stats - Full width */}
+        <VaultHeaderStats vaultAddress={vaultAddress} />
 
-        {/* Main Content Section */}
-        <div className="grid grid-cols-12 gap-6">
-          <div className="col-span-4">
+        {/* Activity and Live Status Cards - Reordered and resized */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Activity Card - 1/3 width on desktop */}
+          <div className="order-2 lg:order-1 lg:col-span-4">
             <ActivityCard />
           </div>
-          <div className="col-span-8">
+          {/* Live Status - 2/3 width on desktop */}
+          <div className="order-1 lg:order-2 lg:col-span-8">
             <LiveStatusCard />
           </div>
         </div>
@@ -40,5 +39,3 @@ function VaultContent() {
     </>
   );
 }
-
-export default VaultContent;

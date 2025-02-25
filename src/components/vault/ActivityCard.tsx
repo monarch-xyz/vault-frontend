@@ -36,15 +36,15 @@ export function ActivityCard() {
   const [selectedType, setSelectedType] = useState('all');
 
   return (
-    <Card className="bg-surface h-[600px] p-4">
+    <Card className="bg-surface h-[600px] p-4 font-zen">
       <CardHeader className="flex items-center justify-between">
-        <span className="text-lg font-medium">Agent Activities</span>
+        <span className="text-lg">Agent Activities</span>
       </CardHeader>
 
       <CardBody className="pt-4">
         <div className="flex flex-col h-full">
           {/* Activity Type Selector */}
-          <div className="flex justify-center gap-2 p-2 border-b border-secondary/30 mb-4">
+          <div className="flex justify-center gap-2 p-2 border-b border-gray-200 dark:border-gray-800 mb-4">
             <button
               onClick={() => setSelectedType('all')}
               className={`px-2.5 py-1 rounded-lg transition-all text-xs
