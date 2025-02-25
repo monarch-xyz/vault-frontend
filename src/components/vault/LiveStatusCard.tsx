@@ -5,7 +5,7 @@ import { AGENT_NAME } from '@/utils/constants';
 
 function AgentStatusSection() {
   return (
-    <div className="flex items-center justify-center gap-2 p-2 border-b mb-4">
+    <div className="flex items-center justify-center gap-2 p-2 border-b border-secondary/30 mb-4">
       <div className="flex items-center gap-2 rounded-lg bg-green-50/50 dark:bg-green-950/30 px-3 py-1">
         <div className="relative flex items-center gap-1.5">
           <RiRobot2Fill className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />

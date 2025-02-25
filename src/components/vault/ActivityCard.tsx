@@ -44,7 +44,7 @@ export function ActivityCard() {
       <CardBody className="pt-4">
         <div className="flex flex-col h-full">
           {/* Activity Type Selector */}
-          <div className="flex justify-center gap-2 p-2 border-b mb-4">
+          <div className="flex justify-center gap-2 p-2 border-b border-secondary/30 mb-4">
             <button
               onClick={() => setSelectedType('all')}
               className={`px-2.5 py-1 rounded-lg transition-all text-xs
