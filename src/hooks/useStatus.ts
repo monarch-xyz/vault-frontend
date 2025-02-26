@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { AGENT_NAME } from '@/utils/constants';
 
@@ -32,142 +32,108 @@ export enum ActivityType {
   TX_GET_ASSET_SHARE = "tx_get_asset_share",
   
   // Default state when no logs are available
-  UNKNOWN = "unknown",
-  
-  // Connection status (not an actual activity)
-  DISCONNECTED = "disconnected",
-  
-  // New state for reconnecting
-  RECONNECTING = "reconnecting"
+  UNKNOWN = "unknown"
 }
 
-// Configuration for activity statuses
-type StatusConfig = {
-  [key in ActivityType]: {
-    statusText: string;
-    emoji: string;
-    severity?: 'info' | 'success' | 'warning' | 'error';
-    color?: string;
-  }
+// Define status categories to group related activities
+enum StatusCategory {
+  IDLE = 'idle',
+  TRANSACTION = 'transaction',
+  ANALYSIS = 'analysis',
+  MESSAGE = 'message',
+  READING_EVENT_LOG = 'reading_event_log',
+  REPORT = 'report',
+}
+
+// Map activities to categories. Each "category" is a status that is displayed in the status bar.
+const ACTIVITY_TO_CATEGORY: Record<ActivityType, StatusCategory> = {
+  [ActivityType.IDLE]: StatusCategory.IDLE,
+  [ActivityType.UNKNOWN]: StatusCategory.IDLE,
+  [ActivityType.AGENT_STARTED]: StatusCategory.IDLE,
+  [ActivityType.AGENT_STOPPING]: StatusCategory.IDLE,
+  
+  [ActivityType.MESSAGE_RECEIVED]: StatusCategory.MESSAGE,
+  [ActivityType.MESSAGE_RESPONDING]: StatusCategory.MESSAGE,
+  
+  [ActivityType.PERIODIC_ANALYSIS_STARTED]: StatusCategory.REPORT,
+  [ActivityType.PERIODIC_ANALYSIS_COMPLETED]: StatusCategory.REPORT,
+  
+  [ActivityType.TX_REALLOCATION]: StatusCategory.TRANSACTION,
+  [ActivityType.TX_GET_ASSET_SHARE]: StatusCategory.TRANSACTION,
+  
+  // All chain events map to the same category
+  [ActivityType.MB_DEPOSIT_DETECTED]: StatusCategory.READING_EVENT_LOG,
+  [ActivityType.MB_WITHDRAWAL_DETECTED]: StatusCategory.READING_EVENT_LOG,
+  [ActivityType.MB_BORROW_DETECTED]: StatusCategory.READING_EVENT_LOG,
+  [ActivityType.MB_REPAY_DETECTED]: StatusCategory.READING_EVENT_LOG,
+  [ActivityType.MV_DEPOSIT_DETECTED]: StatusCategory.READING_EVENT_LOG,
+  [ActivityType.MV_WITHDRAWAL_DETECTED]: StatusCategory.READING_EVENT_LOG,
 };
 
-// Centralized configuration for all activity statuses
-const STATUS_CONFIG: StatusConfig = {
-  [ActivityType.IDLE]: {
-    statusText: `${AGENT_NAME} is chilling`,
+// Simplified category configuration with emoji and text per category
+const CATEGORY_CONFIG: Record<StatusCategory, {
+  priority: number;
+  displayDuration: number;
+  emoji: string;
+  text: string;
+  color: string;
+  severity: 'info' | 'success' | 'warning' | 'error';
+}> = {
+  [StatusCategory.IDLE]: {
+    priority: 5,
+    displayDuration: 0, // Forever
     emoji: '😎',
-    severity: 'info',
-    color: 'bg-green-500'
+    text: `${AGENT_NAME} is chilling`,
+    color: 'bg-green-500',
+    severity: 'info'
   },
-  [ActivityType.AGENT_STARTED]: {
-    statusText: `${AGENT_NAME} is now online and ready!`,
-    emoji: '🚀',
-    severity: 'success',
-    color: 'bg-blue-500'
-  },
-  [ActivityType.AGENT_STOPPING]: {
-    statusText: `${AGENT_NAME} is going to sleep...`,
-    emoji: '💤',
-    severity: 'warning',
-    color: 'bg-orange-500'
-  },
-  [ActivityType.MESSAGE_RECEIVED]: {
-    statusText: `${AGENT_NAME} just got a new message`,
-    emoji: '📩',
-    severity: 'info',
-    color: 'bg-blue-500'
-  },
-  [ActivityType.MESSAGE_RESPONDING]: {
-    statusText: `${AGENT_NAME} is cooking up a response...`,
-    emoji: '👨‍🍳',
-    severity: 'info',
-    color: 'bg-blue-500'
-  },
-  [ActivityType.PERIODIC_ANALYSIS_STARTED]: {
-    statusText: `${AGENT_NAME} is working on the hourly report`,
-    emoji: '📊',
-    severity: 'info',
-    color: 'bg-yellow-500'
-  },
-  [ActivityType.PERIODIC_ANALYSIS_COMPLETED]: {
-    statusText: `${AGENT_NAME} just completed the analysis`,
-    emoji: '🎯',
-    severity: 'success',
-    color: 'bg-green-500'
-  },
-  [ActivityType.MB_DEPOSIT_DETECTED]: {
-    statusText: `${AGENT_NAME} found a new deposit on Morpho Blue!`,
-    emoji: '💰',
-    severity: 'success',
-    color: 'bg-purple-500'
-  },
-  [ActivityType.MB_WITHDRAWAL_DETECTED]: {
-    statusText: `${AGENT_NAME} spotted a withdrawal on Morpho Blue`,
-    emoji: '💸',
-    severity: 'info',
-    color: 'bg-purple-500'
-  },
-  [ActivityType.MB_BORROW_DETECTED]: {
-    statusText: `${AGENT_NAME} noticed someone borrowed on Morpho Blue`,
-    emoji: '🏦',
-    severity: 'info',
-    color: 'bg-purple-500'
-  },
-  [ActivityType.MB_REPAY_DETECTED]: {
-    statusText: `${AGENT_NAME} saw a loan repayment on Morpho Blue`,
-    emoji: '✅',
-    severity: 'success',
-    color: 'bg-purple-500'
-  },
-  [ActivityType.MV_DEPOSIT_DETECTED]: {
-    statusText: `${AGENT_NAME} found a new deposit on Morpho Vault!`,
-    emoji: '💎',
-    severity: 'success',
-    color: 'bg-purple-500'
-  },
-  [ActivityType.MV_WITHDRAWAL_DETECTED]: {
-    statusText: `${AGENT_NAME} spotted a withdrawal on Morpho Vault`,
-    emoji: '📤',
-    severity: 'info',
-    color: 'bg-purple-500'
-  },
-  [ActivityType.TX_REALLOCATION]: {
-    statusText: `${AGENT_NAME} is submitting a reallocation tx...`,
+  [StatusCategory.TRANSACTION]: {
+    priority: 1, // Highest
+    displayDuration: 3000, // 3 second
     emoji: '⚙️',
-    severity: 'warning',
-    color: 'bg-purple-500'
+    text: `${AGENT_NAME} is processing transactions`,
+    color: 'bg-purple-500',
+    severity: 'warning'
   },
-  [ActivityType.TX_GET_ASSET_SHARE]: {
-    statusText: `${AGENT_NAME} is checking asset shares...`,
-    emoji: '🔍',
-    severity: 'info',
-    color: 'bg-purple-500'
+  [StatusCategory.ANALYSIS]: {
+    priority: 1,
+    displayDuration: 5000, // 5 seconds
+    emoji: '🧠',
+    text: `${AGENT_NAME} is thinking`,
+    color: 'bg-yellow-500',
+    severity: 'info'
   },
-  [ActivityType.UNKNOWN]: {
-    statusText: `${AGENT_NAME} is watching the markets...`,
+  [StatusCategory.REPORT]: {
+    priority: 1,
+    displayDuration: 5000, // 5 seconds
+    emoji: '📊',
+    text: `${AGENT_NAME} is working on the hourly report`,
+    color: 'bg-blue-500',
+    severity: 'info'
+  },
+  [StatusCategory.MESSAGE]: {
+    priority: 2,
+    displayDuration: 3000, // 3 seconds
+    emoji: '💬',
+    text: `${AGENT_NAME} is handling messages`,
+    color: 'bg-blue-500',
+    severity: 'info'
+  },
+  [StatusCategory.READING_EVENT_LOG]: {
+    priority: 4,
+    displayDuration: 5000, // 5 seconds
     emoji: '👀',
-    severity: 'info',
-    color: 'bg-gray-500'
-  },
-  [ActivityType.DISCONNECTED]: {
-    statusText: `${AGENT_NAME} is offline`,
-    emoji: '😴',
-    severity: 'error',
-    color: 'bg-red-500'
-  },
-  [ActivityType.RECONNECTING]: {
-    statusText: `${AGENT_NAME} is reconnecting...`,
-    emoji: '🔄',
-    severity: 'info',
-    color: 'bg-yellow-500'
+    text: `${AGENT_NAME} is reading the onchain event`,
+    color: 'bg-purple-500',
+    severity: 'info'
   }
 };
 
-// Interface for status information
+// Status info interface
 interface StatusInfo {
-  activity: ActivityType;
-  timestamp: number;
-  metadata?: any; // Optional additional data from the log
+  activity: ActivityType;        // The specific activity
+  category: StatusCategory;      // The category this activity belongs to
+  timestamp: number;             // When this status was set
 }
 
 // Interface for the log message format
@@ -185,11 +151,15 @@ export function useStatus() {
   const { logs, connected, reconnecting } = useWebSocket();
   const [status, setStatus] = useState<StatusInfo>({
     activity: ActivityType.UNKNOWN,
+    category: StatusCategory.IDLE,
     timestamp: Date.now()
   });
-
+  
+  // Single timer reference for the current status
+  const statusTimer = useRef<NodeJS.Timeout | null>(null);
+  
+  // Process incoming log messages
   useEffect(() => {
-    // If there are no logs or not connected, don't update
     if (!logs.length || !connected) return;
     
     try {
@@ -199,60 +169,108 @@ export function useStatus() {
       
       // Check if it's an activity message
       if (logData.type === 'activity' && logData.data && logData.data.type) {
-        const activityType = logData.data.type;
+        const activity = logData.data.type as ActivityType;
         
         // Check if this activity type is in our enum
-        if (Object.values(ActivityType).includes(activityType as ActivityType)) {
-          setStatus({
-            activity: activityType as ActivityType,
-            timestamp: logData.data.timestamp || Date.now(),
-            metadata: { ...logData.data }
-          });
+        if (Object.values(ActivityType).includes(activity)) {
+          const category = ACTIVITY_TO_CATEGORY[activity] || StatusCategory.IDLE;
+          updateStatus(activity, category, logData.data.timestamp);
         }
       }
     } catch (error) {
       console.error("Failed to parse log message", error);
     }
   }, [logs, connected]);
-
-  // For debugging
-  console.log('Logs:', logs);
-  console.log('Current status:', status);
-
-  // Get the current status config
-  const getCurrentStatusConfig = () => {
-    if (!connected) {
-      return reconnecting 
-        ? STATUS_CONFIG[ActivityType.RECONNECTING]
-        : STATUS_CONFIG[ActivityType.DISCONNECTED];
+  
+  // Handle agent startup case
+  useEffect(() => {
+    if (connected && logs.length === 0) {
+      // When first connected but no logs yet, set to IDLE
+      updateStatus(ActivityType.IDLE, StatusCategory.IDLE, Date.now());
     }
-    return STATUS_CONFIG[status.activity] || STATUS_CONFIG[ActivityType.UNKNOWN];
+  }, [connected, logs.length]);
+  
+  // Update the status and manage the timer
+  const updateStatus = (activity: ActivityType, category: StatusCategory, timestamp: number = Date.now()) => {
+    const now = Date.now();
+    const categoryConfig = CATEGORY_CONFIG[category];
+    const currentPriority = CATEGORY_CONFIG[status.category].priority;
+    const newPriority = categoryConfig.priority;
+    
+    // Only update status if the new one has higher or equal priority
+    if (newPriority <= currentPriority) {
+      // Update status
+      setStatus({
+        activity,
+        category,
+        timestamp: timestamp || now
+      });
+      
+      // Clear any existing timer
+      if (statusTimer.current) {
+        clearTimeout(statusTimer.current);
+        statusTimer.current = null;
+      }
+      
+      // Set a new timer if this category has a display duration
+      if (categoryConfig.displayDuration > 0) {
+        statusTimer.current = setTimeout(() => {
+          // After duration, revert to IDLE
+          setStatus({
+            activity: ActivityType.IDLE,
+            category: StatusCategory.IDLE,
+            timestamp: Date.now()
+          });
+          statusTimer.current = null;
+        }, categoryConfig.displayDuration);
+      }
+    }
   };
-
-  // Utility function to check if the current activity matches
-  const isActivity = (activity: ActivityType): boolean => {
-    return status.activity === activity;
+  
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (statusTimer.current) {
+        clearTimeout(statusTimer.current);
+      }
+    };
+  }, []);
+  
+  // Rest of your utility functions
+  const getStatusMessage = () => {
+    // Special case for agent started
+    if (status.activity === ActivityType.AGENT_STARTED) {
+      return `${AGENT_NAME} is now online!`;
+    }
+    
+    // For all other categories, use the category text
+    return CATEGORY_CONFIG[status.category].text;
   };
-
-  // Utility function to get a human-readable status message
-  const getStatusMessage = (): string => {
-    return getCurrentStatusConfig().statusText;
+  
+  const getStatusEmoji = () => {
+    // Special case for agent started
+    if (status.activity === ActivityType.AGENT_STARTED) {
+      return '🚀';
+    }
+    
+    // For all other categories, use the category emoji
+    return CATEGORY_CONFIG[status.category].emoji;
   };
-
-  // Get the status emoji
-  const getStatusEmoji = (): string => {
-    return getCurrentStatusConfig().emoji;
+  
+  const getStatusColor = () => {
+    return CATEGORY_CONFIG[status.category].color;
   };
-
-  // Get the status color for UI elements
-  const getStatusColor = (): string => {
-    const config = getCurrentStatusConfig();
-    return `${config.color} ${status.activity !== ActivityType.UNKNOWN ? 'animate-pulse' : ''}`;
+  
+  const getStatusSeverity = () => {
+    if (status.activity === ActivityType.AGENT_STARTED) {
+      return 'success';
+    }
+    
+    return CATEGORY_CONFIG[status.category].severity;
   };
-
-  // Get the severity level (for potential alert/notification styling)
-  const getStatusSeverity = (): 'info' | 'success' | 'warning' | 'error' => {
-    return getCurrentStatusConfig().severity || 'info';
+  
+  const isActivity = (checkActivity: ActivityType) => {
+    return status.activity === checkActivity;
   };
 
   return {
@@ -263,7 +281,6 @@ export function useStatus() {
     getStatusColor,
     getStatusSeverity,
     isConnected: connected,
-    statusConfig: getCurrentStatusConfig(),
     isReconnecting: reconnecting
   };
 } 
