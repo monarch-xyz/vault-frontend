@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { FiSun, FiMoon } from "react-icons/fi";
 import AccountConnect from './AccountConnect';
+import { AGENT_NAME } from '@/utils/constants';
 
 export type HeaderProps = {
   ghost?: boolean;
@@ -60,10 +61,10 @@ function Header({ ghost }: HeaderProps) {
       >
         <div className="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-lg">
           <div className="container mx-auto">
-            <nav className="bg-surface flex h-[72px] w-full items-center justify-between px-4">
-              <div className="flex h-8 items-center justify-start gap-4">
-                {/* Your logo/title here */}
-              </div>
+            <nav className="bg-surface flex h-[72px] w-full items-center justify-between px-4 rounded-md">
+                <div className="flex h-8 items-center justify-start gap-4 text-xl font-bold dark:text-gray-200">
+                  {AGENT_NAME} AI
+                </div>
               <div className="flex items-center gap-4">
                 <ThemeToggle />
                 <AccountConnect />
