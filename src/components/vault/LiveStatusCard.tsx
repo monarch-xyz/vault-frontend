@@ -12,7 +12,7 @@ function AgentStatusSection() {
           <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
         </div>
         <span className="text-xs text-green-700 dark:text-green-300">
-          {AGENT_NAME} Chilling
+          {AGENT_NAME} is Live
         </span>
       </div>
     </div>
