@@ -2,18 +2,53 @@ import { Card, CardHeader, CardBody } from '@nextui-org/card';
 import { RiRobot2Fill } from 'react-icons/ri';
 import { ChatSection } from './ChatSection';
 import { AGENT_NAME } from '@/utils/constants';
+import { useStatus, ActivityType } from '@/hooks/useStatus';
+import Image from 'next/image';
 
 function AgentStatusSection() {
+  const { 
+    getStatusMessage, 
+    getStatusColor, 
+    getStatusEmoji, 
+    isConnected, 
+    status 
+  } = useStatus();
+  
   return (
-    <div className="flex items-center justify-center gap-2 p-2 border-b border-gray-200 dark:border-gray-800 mb-4">
-      <div className="flex items-center gap-2 rounded-lg bg-green-50/50 dark:bg-green-950/30 px-3 py-1">
-        <div className="relative flex items-center gap-1.5">
-          <RiRobot2Fill className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-          <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+    <div className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-800 mb-4">
+      {/* Agent profile and status */}
+      <div className="flex items-center gap-3">
+        {/* Agent avatar with status indicator */}
+        <div className="relative">
+          {/* Agent avatar/profile picture */}
+          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center overflow-hidden">
+            <RiRobot2Fill className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            {/* Alternatively, use an image if you have one */}
+            {/* <Image 
+              src="/images/agent-avatar.png" 
+              alt={AGENT_NAME} 
+              width={40} 
+              height={40} 
+              className="rounded-full"
+            /> */}
+          </div>
+          
+          {/* Status indicator in bottom right corner */}
+          <div className={`absolute -bottom-1 -right-1 flex items-center justify-center w-5 h-5 rounded-full bg-white dark:bg-gray-800 border-2 border-white dark:border-gray-800`}>
+            <div className={`w-3 h-3 rounded-full ${getStatusColor()}`}></div>
+          </div>
         </div>
-        <span className="text-xs text-green-700 dark:text-green-300">
-          {AGENT_NAME} is Live
-        </span>
+        
+        {/* Agent name, status emoji and message */}
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium text-sm">{AGENT_NAME}</span>
+            <span className="text-sm" title={status.activity}>{getStatusEmoji()}</span>
+          </div>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {getStatusMessage()}
+          </span>
+        </div>
       </div>
     </div>
   );
