@@ -1,1 +1,1 @@
-export const AGENT_NAME = 'Wowo'; 
+export const AGENT_NAME = 'WoWo'; 

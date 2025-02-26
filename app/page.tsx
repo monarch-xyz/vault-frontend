@@ -1,8 +1,9 @@
+import { AGENT_NAME } from '@/utils/constants';
 import { generateMetadata } from '@/utils/generateMetadata';
 import VaultPage from './home/content';
 
 export const metadata = generateMetadata({
-  title: 'Monarch Vault',
+  title: `${AGENT_NAME} AI`,
   description: 'Smart Agent for Morpho Vaults',
   images: 'themes.png',
   pathname: '',
