@@ -27,6 +27,14 @@ export enum ActivityType {
   PERIODIC_ANALYSIS_STARTED = "periodic_analysis_started",
   PERIODIC_ANALYSIS_COMPLETED = "periodic_analysis_completed",
   
+  // Data fetching activities
+  MARKET_DATA_FETCHED = "market_data_fetched",
+  VAULT_DATA_FETCHED = "vault_data_fetched",
+  
+  // Reasoning activities
+  REASONING_STARTED = "reasoning_started",
+  REASONING_COMPLETED = "reasoning_completed",
+  
   // Transaction activities
   TX_REALLOCATION = "tx_reallocation",
   TX_GET_ASSET_SHARE = "tx_get_asset_share",
@@ -43,6 +51,7 @@ enum StatusCategory {
   MESSAGE = 'message',
   READING_EVENT_LOG = 'reading_event_log',
   REPORT = 'report',
+  DATA_FETCHING = 'data_fetching',
 }
 
 // Map activities to categories. Each "category" is a status that is displayed in the status bar.
@@ -60,6 +69,14 @@ const ACTIVITY_TO_CATEGORY: Record<ActivityType, StatusCategory> = {
   
   [ActivityType.TX_REALLOCATION]: StatusCategory.TRANSACTION,
   [ActivityType.TX_GET_ASSET_SHARE]: StatusCategory.TRANSACTION,
+  
+  // Data fetching activities
+  [ActivityType.MARKET_DATA_FETCHED]: StatusCategory.DATA_FETCHING,
+  [ActivityType.VAULT_DATA_FETCHED]: StatusCategory.DATA_FETCHING,
+  
+  // Reasoning activities
+  [ActivityType.REASONING_STARTED]: StatusCategory.ANALYSIS,
+  [ActivityType.REASONING_COMPLETED]: StatusCategory.ANALYSIS,
   
   // All chain events map to the same category
   [ActivityType.MB_DEPOSIT_DETECTED]: StatusCategory.READING_EVENT_LOG,
@@ -123,8 +140,16 @@ const CATEGORY_CONFIG: Record<StatusCategory, {
     priority: 4,
     displayDuration: 5000, // 5 seconds
     emoji: '👀',
-    text: `${AGENT_NAME} is reading the onchain event`,
+    text: `${AGENT_NAME} is reading onchain events`,
     color: 'bg-purple-500',
+    severity: 'info'
+  },
+  [StatusCategory.DATA_FETCHING]: {
+    priority: 3,
+    displayDuration: 3000, // 3 seconds
+    emoji: '📡',
+    text: `${AGENT_NAME} is fetching live data`,
+    color: 'bg-blue-400',
     severity: 'info'
   }
 };

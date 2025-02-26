@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardBody } from '@nextui-org/card';
 import { RiRobot2Fill } from 'react-icons/ri';
-import { ChatSection } from './ChatSection';
+import { LiveLogSection } from './LiveLogSection';
 import { AGENT_NAME } from '@/utils/constants';
 import { useStatus, ActivityType } from '@/hooks/useStatus';
 import { useState, useRef, useEffect } from 'react';
@@ -106,7 +106,7 @@ export function LiveStatusCard() {
           {/* Chat Section */}
           <div className="flex-1 overflow-y-auto hide-scrollbar">
             <div className="pr-2">
-              <ChatSection />
+              <LiveLogSection />
             </div>
           </div>
         </div>
