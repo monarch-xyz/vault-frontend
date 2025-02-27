@@ -27,6 +27,8 @@ export function useLiveLogs() {
   const { logs, connected } = useWebSocket();
   const [liveLogEntries, setLiveLogEntries] = useState<LogEntry[]>([]);
 
+  console.log('liveLogEntries', liveLogEntries)
+
   // Refs for aggregation
   const aggregationTimer = useRef<NodeJS.Timeout | null>(null);
   
@@ -162,8 +164,9 @@ export function useLiveLogs() {
   // Handler for aggregatable events
   const handleAggregatedEvent = (eventType: string, data: any) => {
     const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
-
-    console.log('data', data)
+    
+    // Create a unique identifier for this event to prevent duplication
+    const eventId = data.tx_hash ? data.tx_hash : `${eventType}-${data.market_id || ''}-${timestamp}-${data.amount || 0}`;
     
     setLiveLogEntries(prevEntries => {
       // Look for an active aggregation with firstEventTimestamp + WINDOW > now
@@ -176,57 +179,58 @@ export function useLiveLogs() {
       
       // If we found an existing entry, update it
       if (existingEntryIndex >= 0) {
-        const updatedEntries = [...prevEntries];
+        const updatedEntries = [...prevEntries]; // Create a new array reference
         const existingEntry = updatedEntries[existingEntryIndex];
-        const aggregateData = existingEntry.data || {
-          eventType: 'morpho_events',
-          count: 0,
-          markets: [],
-          totalAmount: 0,
-          events: [],
-          firstEventTimestamp: timestamp,
-          isActive: true
-        };
+        const aggregateData = { ...existingEntry.data }; // Create a new object reference
         
-        // Update the aggregate data
-        aggregateData.count = (aggregateData.count || 0) + 1;
+        // Initialize properties if they don't exist
+        if (!aggregateData.events) aggregateData.events = [];
+        if (!aggregateData.markets) aggregateData.markets = [];
         
-        // Ensure markets is an array
-        if (!Array.isArray(aggregateData.markets)) {
-          aggregateData.markets = [];
+        // Check if this event already exists in the aggregation
+        const existingEventIndex = aggregateData.events.findIndex((e: any) => 
+          (e.tx_hash && e.tx_hash === data.tx_hash) || 
+          (e.eventId && e.eventId === eventId)
+        );
+        
+        // If event doesn't exist, add it and update counts
+        if (existingEventIndex === -1) {
+          // Update data counters
+          aggregateData.count = (aggregateData.count || 0) + 1;
+          aggregateData.totalAmount = (aggregateData.totalAmount || 0) + (data.amount || 0);
+          
+          // Add market if it doesn't exist
+          if (data.market_id && !aggregateData.markets.includes(data.market_id)) {
+            aggregateData.markets = [...aggregateData.markets, data.market_id];
+          }
+          
+          // Add the new event
+          aggregateData.events = [
+            ...aggregateData.events, 
+            {
+              ...data,
+              type: eventType,
+              timestamp: timestamp,
+              eventId: eventId
+            }
+          ];
         }
         
-        // Add market if it doesn't exist
-        if (data.market_id && !aggregateData.markets.includes(data.market_id)) {
-          aggregateData.markets.push(data.market_id);
-        }
-        
-        // Update amount
-        aggregateData.totalAmount = (aggregateData.totalAmount || 0) + (data.amount || 0);
-        
-        // Add this event to the events array
-        if (!Array.isArray(aggregateData.events)) {
-          aggregateData.events = [];
-        }
-        
-        // Store the original event type in the event data
-        aggregateData.events.push({
-          ...data,
-          type: eventType,
-          timestamp: timestamp
-        });
-        
-        // Update the lastEventTimestamp to the latest event
+        // Always update the timestamp (both for sorting and to trigger a state update)
         aggregateData.lastEventTimestamp = timestamp;
         
-        // Update the entry
-        updatedEntries[existingEntryIndex] = {
+        // Create a completely new entry with updated message
+        const updatedEntry = {
           ...existingEntry,
-          timestamp: timestamp, // Latest event time for sorting
+          timestamp: now, // Use current time for sorting
           message: generateAggregatedMessage(aggregateData),
           data: aggregateData
         };
         
+        // Replace the entry in our array
+        updatedEntries[existingEntryIndex] = updatedEntry;
+        
+        console.log('Returning updated entries', updatedEntries);
         return updatedEntries;
       }
       
@@ -241,7 +245,8 @@ export function useLiveLogs() {
         events: [{
           ...data,
           type: eventType,
-          timestamp: timestamp
+          timestamp: timestamp,
+          eventId: eventId
         }],
         isActive: true
       };
@@ -250,12 +255,12 @@ export function useLiveLogs() {
         id: `agg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
         type: 'morpho_events',
         message: generateAggregatedMessage(newAggregateData),
-        timestamp,
+        timestamp: now, // Use current time for sorting
         data: newAggregateData,
         isAggregated: true
       };
       
-      return [newEntry, ...prevEntries].slice(0, 100); // Keep only the latest 100 entries
+      return [newEntry, ...prevEntries].slice(0, 100);
     });
   };
   
@@ -331,6 +336,8 @@ export function useLiveLogs() {
       acc[type] = (acc[type] || 0) + 1;
       return acc;
     }, {});
+
+    console.log('agg', agg)
     
     // Build message
     if (count === 1) {

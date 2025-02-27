@@ -144,7 +144,7 @@ export function AggregatedEventBubble({ log }: AggregatedEventBubbleProps) {
                     <div className="pl-2 space-y-2">
                       {eventList.map((event, idx) => (
                         <div key={`${event.tx_hash}-${idx}`} className="flex justify-between items-center gap-2 border-b pb-1 last:border-0 last:pb-0 border-gray-100 dark:border-gray-700">
-                          <div>
+                          <div className='flex gap-4'>
                             <div className="flex items-center gap-1">
                               <span className="font-medium">
                                 {formatAmount(event.amount)} USDC
@@ -170,7 +170,7 @@ export function AggregatedEventBubble({ log }: AggregatedEventBubbleProps) {
                               href={`https://basescan.org/tx/0x${event.tx_hash}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="no-underline text-secondary hover:underline font-monospace text-xs"
+                              className="no-underline text-secondary hover:underline font-zen text-xs"
                             >
                               Tx: {formatAddress(event.tx_hash)}
                             </a>
