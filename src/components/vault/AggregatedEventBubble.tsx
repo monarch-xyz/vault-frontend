@@ -6,7 +6,7 @@ import { MarketSpan } from '@/components/common/MarketSpan';
 import { LogEntry } from '@/hooks/useLiveLogs';
 import { ActivityType } from '@/utils/constants';
 import { useMarkets } from '@/contexts/MarketsContext';
-
+import { getExplorerTxURL } from '@/utils/external';
 interface EventTransaction {
   type: string;
   amount: number;
@@ -167,7 +167,7 @@ export function AggregatedEventBubble({ log }: AggregatedEventBubbleProps) {
                           </div>
                           {event.tx_hash && (
                             <a
-                              href={`https://basescan.org/tx/0x${event.tx_hash}`}
+                              href={getExplorerTxURL(`0x${event.tx_hash}`, 8453)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="no-underline text-secondary hover:underline font-zen text-xs"

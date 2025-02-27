@@ -3,8 +3,6 @@ import Image from 'next/image';
 import { findToken } from '@/utils/tokens';
 import { Market } from '@/utils/types';
 
-// Default chain ID (mainnet)
-const DEFAULT_CHAIN_ID = 1;
 
 interface MarketSpanProps {
   marketId: string;

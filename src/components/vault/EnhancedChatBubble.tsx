@@ -1,13 +1,10 @@
 import { format, formatDistanceToNow } from 'date-fns';
 import { Badge } from '@/components/common/Badge';
-import { FaRobot, FaUser, FaShieldAlt } from 'react-icons/fa';
 import { BsChatDots } from 'react-icons/bs';
 import { isAddress } from 'viem';
 import { MarkdownText } from '@/components/MarkdownText';
 import { ChatMessage } from '@/hooks/useChat';
 import { AGENT_NAME } from '@/utils/constants';
-import { BiBrain } from 'react-icons/bi';
-import { LogEntry } from '@/hooks/useLiveLogs';
 
 interface EnhancedChatBubbleProps {
   message: ChatMessage;
@@ -44,12 +41,6 @@ export function EnhancedChatBubble({ message }: EnhancedChatBubbleProps) {
     ? "text-sm text-blue-800 dark:text-blue-200"
     : "text-sm text-gray-800 dark:text-gray-200";
     
-  // Get icon based on sender type
-  const getIcon = () => {
-    if (isAgent) return <FaRobot className="h-3 w-3" />;
-    if (isAdmin) return <FaShieldAlt className="h-3 w-3" />;
-    return <FaUser className="h-3 w-3" />;
-  };
 
   // Get badge style based on sender type
   const getBadgeStyle = () => {
@@ -62,44 +53,6 @@ export function EnhancedChatBubble({ message }: EnhancedChatBubbleProps) {
     }
   };
 
-  const renderReasoningLog = (log: LogEntry) => {
-    return (
-      <div className="rounded-lg border border-yellow-200 bg-yellow-50/30 p-3 dark:border-yellow-800/50 dark:bg-yellow-900/10">
-        <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="default"
-              size="sm"
-              className="bg-yellow-100 text-yellow-600 dark:bg-yellow-800/50 dark:text-yellow-300"
-            >
-              <div className="flex items-center gap-1">
-                <BiBrain className="h-3 w-3" />
-                <span className="text-[10px]">THINKING</span>
-              </div>
-            </Badge>
-            
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              {log.data?.title || `${AGENT_NAME} is thinking`}
-            </span>
-          </div>
-          
-          <span className="text-[10px] text-gray-500" title={format(new Date(log.timestamp), 'HH:mm:ss')}>
-            {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
-          </span>
-        </div>
-        
-        <div className="text-sm text-gray-800 dark:text-gray-200">
-          {log.isLoading ? (
-            <div className="flex items-center gap-2">
-              <span>{log.message}</span>
-            </div>
-          ) : (
-            <p>{log.message}</p>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className={bubbleStyle}>

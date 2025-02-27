@@ -27,8 +27,6 @@ export function useLiveLogs() {
   const { logs, connected } = useWebSocket();
   const [liveLogEntries, setLiveLogEntries] = useState<LogEntry[]>([]);
 
-  console.log('liveLogEntries', liveLogEntries)
-
   // Refs for aggregation
   const aggregationTimer = useRef<NodeJS.Timeout | null>(null);
   
