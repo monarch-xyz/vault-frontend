@@ -139,11 +139,13 @@ export function useLiveLogs() {
     const logEntry: LogEntry = {
       id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type: ActivityType.REASONING_STARTED,
-      message: `${AGENT_NAME} is thinking about:${data.prompt ? '\n\n' + data.prompt : '...'}`,
+      message: data.prompt || '...',  // Just store the prompt as the message
       timestamp,
       data: {
         ...data,
-        prompt: data.prompt || ''
+        prompt: data.prompt || '',
+        // Add a title field for the header text
+        title: `${AGENT_NAME} is thinking about...`
       },
       isLoading: true,
       reasoningId,
@@ -166,9 +168,13 @@ export function useLiveLogs() {
         const logEntry: LogEntry = {
           id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           type: ActivityType.REASONING_COMPLETED,
-          message: `${AGENT_NAME} completed thinking`,
+          message: data.prompt || 'Completed thinking', // Keep just the prompt
           timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
-          data
+          data: {
+            ...data,
+            title: `${AGENT_NAME} completed thinking`
+          },
+          reasoningType: 'thinking'
         };
         return [logEntry, ...prevEntries].slice(0, 100);
       }
@@ -178,10 +184,11 @@ export function useLiveLogs() {
       updatedEntries[startIndex] = {
         ...updatedEntries[startIndex],
         type: ActivityType.REASONING_COMPLETED,
-        message: `${AGENT_NAME} completed thinking about:${updatedEntries[startIndex].data.prompt ? '\n\n' + updatedEntries[startIndex].data.prompt : ''}`,
+        message: updatedEntries[startIndex].data.prompt || '', // Keep the prompt as the main message
         data: {
           ...updatedEntries[startIndex].data,
           ...data,
+          title: `${AGENT_NAME} completed thinking`,
           originalPrompt: updatedEntries[startIndex].data.prompt // Keep record of the original prompt
         },
         isLoading: false

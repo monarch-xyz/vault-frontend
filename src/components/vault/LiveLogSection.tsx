@@ -1,11 +1,10 @@
 import { format, formatDistanceToNow } from 'date-fns'
 import { Badge } from '@/components/common/Badge'
-import { FaRobot, FaChartLine, FaExchangeAlt, FaInfoCircle } from 'react-icons/fa'
+import { FaChartLine, FaExchangeAlt, FaInfoCircle } from 'react-icons/fa'
 import { BsChatDots, BsClockHistory } from 'react-icons/bs'
 import { useChat, ChatMessage } from '@/hooks/useChat'
 import { useLiveLogs, LogEntry } from '@/hooks/useLiveLogs'
 import { Spinner } from '@/components/common/Spinner'
-import { isAddress } from 'viem'
 import { MarkdownText } from '@/components/MarkdownText'
 import { ActivityType } from '@/hooks/useStatus'
 import { EnhancedChatBubble } from './EnhancedChatBubble'
@@ -110,10 +109,10 @@ function SystemLogBubble({ log }: { log: LogEntry }) {
       {log.data?.tx_hash && (
         <div className="mt-2 text-xs text-gray-500">
           <a
-            href={`https://etherscan.io/tx/${log.data.tx_hash}`}
+            href={`https://basescan.org/tx/${log.data.tx_hash}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-monospace"
           >
             TX: {log.data.tx_hash.slice(0, 6)}...{log.data.tx_hash.slice(-4)}
           </a>

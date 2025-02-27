@@ -28,6 +28,7 @@ export enum ActivityType {
   PERIODIC_ANALYSIS_COMPLETED = "periodic_analysis_completed",
   
   // Data fetching activities
+  DATA_FETCHING_STARTED = "data_fetching_started",
   MARKET_DATA_FETCHED = "market_data_fetched",
   VAULT_DATA_FETCHED = "vault_data_fetched",
   
@@ -45,6 +46,7 @@ export enum ActivityType {
 
 // Define status categories to group related activities
 enum StatusCategory {
+  NONE = 'none', // no effect on status
   IDLE = 'idle',
   TRANSACTION = 'transaction',
   ANALYSIS = 'analysis',
@@ -72,7 +74,10 @@ const ACTIVITY_TO_CATEGORY: Record<ActivityType, StatusCategory> = {
   
   // Data fetching activities
   [ActivityType.MARKET_DATA_FETCHED]: StatusCategory.DATA_FETCHING,
-  [ActivityType.VAULT_DATA_FETCHED]: StatusCategory.DATA_FETCHING,
+  [ActivityType.DATA_FETCHING_STARTED]: StatusCategory.NONE,
+  [ActivityType.VAULT_DATA_FETCHED]: StatusCategory.NONE,
+  
+  // Data Fetched => Show analysing
   
   // Reasoning activities
   [ActivityType.REASONING_STARTED]: StatusCategory.ANALYSIS,
@@ -87,70 +92,60 @@ const ACTIVITY_TO_CATEGORY: Record<ActivityType, StatusCategory> = {
   [ActivityType.MV_WITHDRAWAL_DETECTED]: StatusCategory.READING_EVENT_LOG,
 };
 
-// Simplified category configuration with emoji and text per category
+// Simplified category configuration without color and severity
 const CATEGORY_CONFIG: Record<StatusCategory, {
   priority: number;
   displayDuration: number;
   emoji: string;
   text: string;
-  color: string;
-  severity: 'info' | 'success' | 'warning' | 'error';
 }> = {
   [StatusCategory.IDLE]: {
     priority: 5,
     displayDuration: 0, // Forever
     emoji: '😎',
-    text: `${AGENT_NAME} is chilling`,
-    color: 'bg-green-500',
-    severity: 'info'
+    text: `${AGENT_NAME} is chilling`
   },
   [StatusCategory.TRANSACTION]: {
     priority: 1, // Highest
     displayDuration: 3000, // 3 second
     emoji: '⚙️',
-    text: `${AGENT_NAME} is processing transactions`,
-    color: 'bg-purple-500',
-    severity: 'warning'
+    text: `${AGENT_NAME} is processing transactions`
   },
   [StatusCategory.ANALYSIS]: {
     priority: 1,
-    displayDuration: 5000, // 5 seconds
+    displayDuration: 8000, // 8 seconds
     emoji: '🧠',
-    text: `${AGENT_NAME} is thinking`,
-    color: 'bg-yellow-500',
-    severity: 'info'
+    text: `${AGENT_NAME} is thinking`
   },
   [StatusCategory.REPORT]: {
     priority: 1,
     displayDuration: 5000, // 5 seconds
     emoji: '📊',
-    text: `${AGENT_NAME} is working on the hourly report`,
-    color: 'bg-blue-500',
-    severity: 'info'
+    text: `${AGENT_NAME} is working on the hourly report`
   },
   [StatusCategory.MESSAGE]: {
     priority: 2,
-    displayDuration: 3000, // 3 seconds
+    displayDuration: 5000, // 5 seconds
     emoji: '💬',
-    text: `${AGENT_NAME} is handling messages`,
-    color: 'bg-blue-500',
-    severity: 'info'
+    text: `${AGENT_NAME} is handling messages`
   },
   [StatusCategory.READING_EVENT_LOG]: {
     priority: 4,
     displayDuration: 5000, // 5 seconds
     emoji: '👀',
-    text: `${AGENT_NAME} is reading onchain events`,
-    color: 'bg-purple-500',
-    severity: 'info'
+    text: `${AGENT_NAME} is reading onchain events`
   },
   [StatusCategory.DATA_FETCHING]: {
-    priority: 3,
-    displayDuration: 3000, // 3 seconds
+    priority: 2,
+    displayDuration: 5000, // 5 seconds
     emoji: '📡',
-    text: `${AGENT_NAME} is fetching live data`,
-    color: 'bg-blue-400',
-    severity: 'info'
+    text: `${AGENT_NAME} is fetching live data`
+  },
+  [StatusCategory.NONE]: {
+    priority: 0,
+    displayDuration: 0,
+    emoji: '',
+    text: ''
   }
 };
 
@@ -217,6 +212,9 @@ export function useStatus() {
   
   // Update the status and manage the timer
   const updateStatus = (activity: ActivityType, category: StatusCategory, timestamp: number = Date.now()) => {
+    // Skip updating for NONE category
+    if (category === StatusCategory.NONE) return;
+    
     const now = Date.now();
     const categoryConfig = CATEGORY_CONFIG[category];
     const currentPriority = CATEGORY_CONFIG[status.category].priority;
@@ -282,16 +280,12 @@ export function useStatus() {
     return CATEGORY_CONFIG[status.category].emoji;
   };
   
-  const getStatusColor = () => {
-    return CATEGORY_CONFIG[status.category].color;
-  };
-  
   const getStatusSeverity = () => {
     if (status.activity === ActivityType.AGENT_STARTED) {
       return 'success';
     }
     
-    return CATEGORY_CONFIG[status.category].severity;
+    return 'info'; // Default severity
   };
   
   const isActivity = (checkActivity: ActivityType) => {
@@ -303,7 +297,6 @@ export function useStatus() {
     isActivity,
     getStatusMessage,
     getStatusEmoji,
-    getStatusColor,
     getStatusSeverity,
     isConnected: connected,
     isReconnecting: reconnecting

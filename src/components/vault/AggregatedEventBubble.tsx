@@ -26,8 +26,6 @@ const [expanded, setExpanded] = useState(false);
   const {
     events = [],
     markets = [],
-    totalAmount = 0,
-    count = 0
   } = log.data || {};
   
   // Group events by type
@@ -160,10 +158,10 @@ const [expanded, setExpanded] = useState(false);
                           </div>
                           {event.tx_hash && (
                             <a
-                              href={`https://etherscan.io/tx/${event.tx_hash}`}
+                              href={`https://basescan.org/tx/0x${event.tx_hash}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                              className="no-underline text-secondary hover:underline font-monospace text-xs"
                             >
                               Tx: {formatAddress(event.tx_hash)}
                             </a>
