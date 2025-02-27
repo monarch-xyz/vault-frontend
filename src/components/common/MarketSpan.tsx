@@ -1,30 +1,29 @@
 import React from 'react';
 import Image from 'next/image';
 import { findToken } from '@/utils/tokens';
+import { Market } from '@/utils/types';
 
 // Default chain ID (mainnet)
 const DEFAULT_CHAIN_ID = 1;
 
 interface MarketSpanProps {
   marketId: string;
-  marketAddress?: string; // The collateral token address if known
-  chainId?: number;
+  market?: Market
   className?: string;
 }
 
 export function MarketSpan({ 
   marketId, 
-  marketAddress,
-  chainId = DEFAULT_CHAIN_ID,
+  market,
   className = ''
 }: MarketSpanProps) {
   // Format marketId to show first 6 and last 4 characters
   const formattedId = marketId?.length > 10 
-    ? `${marketId.slice(0, 6)}...${marketId.slice(-4)}` 
+    ? `${marketId.slice(0, 6)}` 
     : marketId;
   
   // Get token info using findToken if we have the market address
-  const token = marketAddress ? findToken(marketAddress, chainId) : null;
+  const token = market?.collateralAsset ? findToken(market.collateralAsset.address, market.morphoBlue.chain.id) : null;
   
   return (
     <span 

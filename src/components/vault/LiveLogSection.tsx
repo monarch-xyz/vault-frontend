@@ -8,7 +8,7 @@ import { Spinner } from '@/components/common/Spinner'
 import { MarkdownText } from '@/components/MarkdownText'
 import { ActivityType, AGENT_NAME } from '@/utils/constants'
 import { EnhancedChatBubble } from './EnhancedChatBubble'
-import { AggregatedEventBubble } from './AggregatedEventBubble'
+import { AggregatedEventBubble as AggregatedEventBubbleComponent } from './AggregatedEventBubble'
 import { TbTool } from 'react-icons/tb'
 
 // Component for system logs
@@ -168,9 +168,10 @@ export function LiveLogSection() {
       return <EnhancedChatBubble message={item.data as ChatMessage} />;
     } else {
       const log = item.data as LogEntry;
-      // If it's an aggregated log, use AggregatedEventBubble
+      // If it's an aggregated log, use the imported AggregatedEventBubbleComponent
       if (log.isAggregated) {
-        return <AggregatedEventBubble log={log} />;
+        console.log('log', log)
+        return <AggregatedEventBubbleComponent log={log} />;
       } else {
         // Otherwise use SystemLogBubble
         return <SystemLogBubble log={log} />;

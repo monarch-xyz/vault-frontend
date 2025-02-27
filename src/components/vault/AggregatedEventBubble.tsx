@@ -5,6 +5,7 @@ import { FaExchangeAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { MarketSpan } from '@/components/common/MarketSpan';
 import { LogEntry } from '@/hooks/useLiveLogs';
 import { ActivityType } from '@/utils/constants';
+import { useMarkets } from '@/contexts/MarketsContext';
 
 interface EventTransaction {
   type: string;
@@ -19,8 +20,14 @@ interface AggregatedEventBubbleProps {
   log: LogEntry;
 }
 
+function isSameMarket(a: string, b: string) {
+    return a.replace('0x', '').toLowerCase() === b.replace('0x', '').toLowerCase();
+}
+
 export function AggregatedEventBubble({ log }: AggregatedEventBubbleProps) {
-const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const {markets: allMarkets} = useMarkets()
   
   // Format the aggregate data from the log
   const {
@@ -102,12 +109,13 @@ const [expanded, setExpanded] = useState(false);
       
       <div className="flex flex-col gap-2">
         <div className="text-sm text-gray-800 dark:text-gray-200">
-          <p className="font-medium">{log.message}</p>
+          <p className="font-base">{log.message}</p>
           <div className="mt-1 flex flex-wrap gap-1">
             {Array.isArray(markets) && markets.map((marketId: string, index: number) => (
               <MarketSpan 
                 key={`${marketId}-${index}`} 
                 marketId={marketId}
+                market={allMarkets.find((m: any) => isSameMarket(m.uniqueKey, marketId))}
               />
             ))}
           </div>
@@ -152,6 +160,7 @@ const [expanded, setExpanded] = useState(false);
                                 <MarketSpan 
                                   marketId={event.market_id}
                                   className="text-[10px] px-1 py-0.5"
+                                  market={allMarkets.find((m: any) => isSameMarket(m.uniqueKey, event.market_id))}
                                 />
                               )}
                             </div>

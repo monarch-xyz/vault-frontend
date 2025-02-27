@@ -2,16 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { AGENT_NAME, ActivityType } from '@/utils/constants';
 
-// Types of logs we want to aggregate - only transaction events
-const AGGREGATABLE_EVENTS = [
-  ActivityType.MB_DEPOSIT_DETECTED,
-  ActivityType.MB_WITHDRAWAL_DETECTED,
-  ActivityType.MB_BORROW_DETECTED,
-  ActivityType.MB_REPAY_DETECTED,
-  ActivityType.MV_DEPOSIT_DETECTED,
-  ActivityType.MV_WITHDRAWAL_DETECTED,
-];
-
 // Log entry interface
 export interface LogEntry {
   id: string;
@@ -28,6 +18,10 @@ export interface LogEntry {
 
 // Type for log handler functions
 type LogHandler = (activityType: string, data: any) => void;
+
+// Define the constant for aggregation window
+const AGGREGATION_WINDOW_MINUTES = 10;
+const AGGREGATION_WINDOW_MS = AGGREGATION_WINDOW_MINUTES * 60 * 1000;
 
 export function useLiveLogs() {
   const { logs, connected } = useWebSocket();
@@ -49,12 +43,8 @@ export function useLiveLogs() {
       if (logData.type === 'activity' && logData.data && logData.data.type) {
         const activityType = logData.data.type;
 
-        console.log('got log', activityType)
-        
         // Get the appropriate handler for this activity type
         const handler = LOG_HANDLERS[activityType];
-
-        console.log('got handler', handler)
         
         // Only process if we have a defined handler
         if (handler) {
@@ -172,12 +162,16 @@ export function useLiveLogs() {
   // Handler for aggregatable events
   const handleAggregatedEvent = (eventType: string, data: any) => {
     const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
+
+    console.log('data', data)
     
     setLiveLogEntries(prevEntries => {
-      // Look for an existing aggregated entry within the last 5 minutes
-      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      // Look for an active aggregation with firstEventTimestamp + WINDOW > now
+      const now = Date.now();
       const existingEntryIndex = prevEntries.findIndex(
-        entry => entry.isAggregated && entry.timestamp > fiveMinutesAgo
+        entry => entry.isAggregated && 
+               entry.data?.firstEventTimestamp && 
+               (entry.data.firstEventTimestamp + AGGREGATION_WINDOW_MS > now)
       );
       
       // If we found an existing entry, update it
@@ -189,7 +183,9 @@ export function useLiveLogs() {
           count: 0,
           markets: [],
           totalAmount: 0,
-          events: []
+          events: [],
+          firstEventTimestamp: timestamp,
+          isActive: true
         };
         
         // Update the aggregate data
@@ -216,13 +212,17 @@ export function useLiveLogs() {
         // Store the original event type in the event data
         aggregateData.events.push({
           ...data,
-          type: eventType
+          type: eventType,
+          timestamp: timestamp
         });
         
-        // Update the timestamp to the latest event
+        // Update the lastEventTimestamp to the latest event
+        aggregateData.lastEventTimestamp = timestamp;
+        
+        // Update the entry
         updatedEntries[existingEntryIndex] = {
           ...existingEntry,
-          timestamp: Math.max(existingEntry.timestamp, timestamp),
+          timestamp: timestamp, // Latest event time for sorting
           message: generateAggregatedMessage(aggregateData),
           data: aggregateData
         };
@@ -236,12 +236,14 @@ export function useLiveLogs() {
         count: 1,
         markets: data.market_id ? [data.market_id] : [],
         totalAmount: data.amount || 0,
-        firstTimestamp: timestamp,
-        lastTimestamp: timestamp,
+        firstEventTimestamp: timestamp,
+        lastEventTimestamp: timestamp,
         events: [{
           ...data,
-          type: eventType
-        }]
+          type: eventType,
+          timestamp: timestamp
+        }],
+        isActive: true
       };
       
       const newEntry: LogEntry = {
