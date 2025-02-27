@@ -32,8 +32,8 @@ const ACTIVITY_TO_CATEGORY: Record<ActivityType, StatusCategory> = {
   [ActivityType.TX_GET_ASSET_SHARE]: StatusCategory.TRANSACTION,
   
   // Data fetching activities
-  [ActivityType.MARKET_DATA_FETCHED]: StatusCategory.DATA_FETCHING,
-  [ActivityType.DATA_FETCHING_STARTED]: StatusCategory.NONE,
+  [ActivityType.DATA_FETCHING_STARTED]: StatusCategory.DATA_FETCHING,
+  [ActivityType.MARKET_DATA_FETCHED]: StatusCategory.NONE,
   [ActivityType.VAULT_DATA_FETCHED]: StatusCategory.NONE,
   
   // Data Fetched => Show analysing
@@ -72,7 +72,7 @@ const CATEGORY_CONFIG: Record<StatusCategory, {
   },
   [StatusCategory.ANALYSIS]: {
     priority: 1,
-    displayDuration: 8000, // 8 seconds
+    displayDuration: 10000, // 10 seconds
     emoji: '🧠',
     text: `${AGENT_NAME} is thinking`
   },
@@ -153,6 +153,11 @@ export function useStatus() {
         // Check if this activity type is in our enum
         if (Object.values(ActivityType).includes(activity)) {
           const category = ACTIVITY_TO_CATEGORY[activity] || StatusCategory.IDLE;
+
+          if (activity === ActivityType.DATA_FETCHING_STARTED) {
+            console.log('got fetching data log')
+          }
+
           updateStatus(activity, category, logData.data.timestamp);
         }
       }

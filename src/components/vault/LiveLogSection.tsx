@@ -6,7 +6,7 @@ import { useChat, ChatMessage } from '@/hooks/useChat'
 import { useLiveLogs, LogEntry } from '@/hooks/useLiveLogs'
 import { Spinner } from '@/components/common/Spinner'
 import { MarkdownText } from '@/components/MarkdownText'
-import { ActivityType } from '@/utils/constants'
+import { ActivityType, AGENT_NAME } from '@/utils/constants'
 import { EnhancedChatBubble } from './EnhancedChatBubble'
 import { AggregatedEventBubble } from './AggregatedEventBubble'
 import { TbTool } from 'react-icons/tb'
@@ -75,6 +75,16 @@ function SystemLogBubble({ log }: { log: LogEntry }) {
     }
   };
   
+  // Add this helper function to get summary text for reasoning logs
+  const getReasoningSummary = () => {
+    if (log.type === ActivityType.REASONING_STARTED || log.type === ActivityType.REASONING_COMPLETED) {
+      return log.data?.summaryText || (log.type === ActivityType.REASONING_STARTED 
+        ? `${AGENT_NAME} is thinking...` 
+        : `${AGENT_NAME} completed thinking`);
+    }
+    return null;
+  };
+  
   return (
     <div className={getBubbleStyle()}>
       <div className="mb-2 flex items-center justify-between">
@@ -89,9 +99,14 @@ function SystemLogBubble({ log }: { log: LogEntry }) {
               <span className="text-[10px]">{getLogLabel()}</span>
             </div>
           </Badge>
+          {getReasoningSummary() && (
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {getReasoningSummary()}
+            </span>
+          )}
           {log.isLoading && (
             <span className="flex items-center text-xs text-gray-500">
-              <Spinner size={12}/> Processing...
+              <Spinner size={12}/>
             </span>
           )}
         </div>

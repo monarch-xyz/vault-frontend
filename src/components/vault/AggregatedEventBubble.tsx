@@ -4,7 +4,7 @@ import { Badge } from '@/components/common/Badge';
 import { FaExchangeAlt, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { MarketSpan } from '@/components/common/MarketSpan';
 import { LogEntry } from '@/hooks/useLiveLogs';
-import { ActivityType } from '@/hooks/useStatus';
+import { ActivityType } from '@/utils/constants';
 
 interface EventTransaction {
   type: string;

@@ -27,8 +27,8 @@ export enum ActivityType {
   
   // Data fetching activities
   DATA_FETCHING_STARTED = "data_fetching_started",
-  MARKET_DATA_FETCHED = "market_data_fetched",
-  VAULT_DATA_FETCHED = "vault_data_fetched",
+  MARKET_DATA_FETCHED = "market_data_fetch_completed",
+  VAULT_DATA_FETCHED = "vault_data_fetch_completed",
   
   // Reasoning activities
   REASONING_STARTED = "reasoning_started",
