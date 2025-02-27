@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { Spinner } from '@/components/common/Spinner';
 
 // Dynamically import VaultContent with no SSR
-const VaultContent = dynamic(() => import('./content'), {
+const VaultContent = dynamic(async () => import('./content'), {
   ssr: false,
   loading: () => (
     <div className="flex h-screen items-center justify-center">

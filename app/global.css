@@ -267,7 +267,7 @@ pre {
 }
 
 /* Status animation styles */
-.status-emoji-container, 
+.status-emoji-container,
 .status-message-container {
   position: relative;
   transform-style: preserve-3d;
@@ -296,4 +296,4 @@ pre {
 .status-message-container:not(.flipping) span {
   opacity: 1;
   transition-delay: 0.25s;
-} 
+}

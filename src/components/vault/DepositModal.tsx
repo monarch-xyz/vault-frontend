@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Modal, ModalContent, ModalHeader, ModalBody } from "@nextui-org/modal";
-import { Button } from '@/components/common/Button';
-import Input from '@/components/Input/Input';
-import { useUserBalances } from '@/hooks/useUserBalances';
-import { useDepositVault } from '@/hooks/useDepositVault';
-import { formatBalance } from '@/utils/balance';
+import { Modal, ModalContent, ModalHeader, ModalBody } from '@nextui-org/modal';
 import Image from 'next/image';
 import { BiBrain } from 'react-icons/bi';
+import { Button } from '@/components/common/Button';
+import Input from '@/components/Input/Input';
+import { useDepositVault } from '@/hooks/useDepositVault';
+import { useUserBalances } from '@/hooks/useUserBalances';
+import { formatBalance } from '@/utils/balance';
 import { AGENT_NAME } from '@/utils/constants';
 
 const USDC = {
@@ -18,7 +18,7 @@ const USDC = {
   address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
 
-interface DepositModalProps {
+type DepositModalProps = {
   isOpen: boolean;
   onClose: () => void;
   vaultAddress: string;
@@ -47,30 +47,31 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
   };
 
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onClose={onClose}
       classNames={{
-        base: "bg-surface rounded-lg",
-        header: "border-b border-divider",
-        body: "p-8",
+        base: 'bg-surface rounded-lg',
+        header: 'border-b border-divider',
+        body: 'p-8',
       }}
     >
       <ModalContent>
         <ModalHeader className="flex items-center gap-2 p-6 font-zen">
           <Image src={USDC.img} alt={USDC.symbol} width={24} height={24} />
-          <span className="text-xl font-medium font-zen">Deposit USDC</span>
+          <span className="font-zen text-xl font-medium">Deposit USDC</span>
         </ModalHeader>
         <ModalBody>
           <div className="space-y-6 font-zen">
             {/* AI Vault Description */}
-            <div className="flex flex-col rounded-lg bg-primary/5 p-4 space-y-2 gap-2">
+            <div className="flex flex-col gap-2 space-y-2 rounded-lg bg-primary/5 p-4">
               <div className="flex items-center gap-2 text-primary">
                 <BiBrain className="h-5 w-5" />
                 <span className="font-medium">AI-Managed Vault</span>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Your funds will be managed by WoWo, an AI agent that optimizes yield across Morpho markets.
+                Your funds will be managed by WoWo, an AI agent that optimizes yield across Morpho
+                markets.
               </p>
               <div className="mt-6 text-xs text-gray-500">
                 💡 Deposit $10+ to interact with WoWo.
@@ -101,16 +102,12 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder={`Say hello to ${AGENT_NAME}!`}
                 rows={4}
-                className="bg-hovered w-full rounded-sm p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
+                className="bg-hovered w-full resize-none rounded-sm p-3 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
 
             <div className="flex gap-3 pt-2">
-              <Button
-                variant="secondary"
-                className="flex-1"
-                onClick={onClose}
-              >
+              <Button variant="secondary" className="flex-1" onClick={onClose}>
                 Cancel
               </Button>
               <Button
@@ -127,4 +124,4 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
       </ModalContent>
     </Modal>
   );
-} 
+}

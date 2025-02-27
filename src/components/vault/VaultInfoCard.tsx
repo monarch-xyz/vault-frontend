@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardBody } from '@nextui-org/card';
-import Image from 'next/image';
 import { format } from 'date-fns';
-import { IoMdRefresh } from 'react-icons/io';
+import Image from 'next/image';
 import { BiChevronDown, BiChevronUp } from 'react-icons/bi';
+import { IoMdRefresh } from 'react-icons/io';
 import { Button } from '@/components/common/Button';
-import { useVault } from '@/hooks/useVault';
 import { useMarkets } from '@/contexts/MarketsContext';
+import { useVault } from '@/hooks/useVault';
 import { formatBalance, formatReadable } from '@/utils/balance';
-import { DepositModal } from './DepositModal';
 import { findToken } from '@/utils/tokens';
+import { DepositModal } from './DepositModal';
 
 const USDC = {
   symbol: 'USDC',
@@ -27,12 +27,12 @@ export function VaultInfoCard({ vaultAddress }: { vaultAddress: string }) {
   const totalAssets = vault ? BigInt(vault.state.totalAssets) : BigInt(0);
 
   // Sort allocations by amount
-  const sortedAllocations = (markets && vault) ? [...vault.state.allocation]
-    .sort((a, b) => Number(b.supplyAssets) - Number(a.supplyAssets)) : [];
+  const sortedAllocations =
+    markets && vault
+      ? [...vault.state.allocation].sort((a, b) => Number(b.supplyAssets) - Number(a.supplyAssets))
+      : [];
 
-  const displayedAllocations = showAllMarkets 
-    ? sortedAllocations 
-    : sortedAllocations.slice(0, 4);
+  const displayedAllocations = showAllMarkets ? sortedAllocations : sortedAllocations.slice(0, 4);
 
   return (
     <Card className="bg-surface h-full p-4">
@@ -42,11 +42,7 @@ export function VaultInfoCard({ vaultAddress }: { vaultAddress: string }) {
           <span className="text-lg font-medium">USDC Vault</span>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="cta"
-            size="sm"
-            onClick={() => setIsDepositModalOpen(true)}
-          >
+          <Button variant="cta" size="sm" onClick={() => setIsDepositModalOpen(true)}>
             Deposit
           </Button>
           <button
@@ -92,23 +88,23 @@ export function VaultInfoCard({ vaultAddress }: { vaultAddress: string }) {
                 const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
 
                 if (!market) return null;
-                
+
                 const amount = BigInt(allocation.supplyAssets);
                 const percentage = (Number(allocation.supplyAssets) / Number(totalAssets)) * 100;
                 const token = findToken(market.collateralAsset.address, market.morphoBlue.chain.id);
-                
+
                 return (
-                  <div 
+                  <div
                     key={allocation.market.uniqueKey}
                     className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2 dark:border-gray-800"
                   >
                     <div className="flex items-center gap-2">
                       {token?.img ? (
-                        <Image 
-                          src={token.img} 
-                          alt={market.collateralAsset.symbol} 
-                          width={20} 
-                          height={20} 
+                        <Image
+                          src={token.img}
+                          alt={market.collateralAsset.symbol}
+                          width={20}
+                          height={20}
                           className="rounded-full"
                         />
                       ) : (
@@ -116,9 +112,7 @@ export function VaultInfoCard({ vaultAddress }: { vaultAddress: string }) {
                       )}
                       <div>
                         <div className="text-sm">{market.collateralAsset.symbol}</div>
-                        <div className="text-xs text-gray-500">
-                          {formatBalance(amount, 6)} USDC
-                        </div>
+                        <div className="text-xs text-gray-500">{formatBalance(amount, 6)} USDC</div>
                       </div>
                     </div>
                     <div className="text-right">
@@ -152,11 +146,11 @@ export function VaultInfoCard({ vaultAddress }: { vaultAddress: string }) {
         )}
       </CardBody>
 
-      <DepositModal 
+      <DepositModal
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
         vaultAddress={vaultAddress}
       />
     </Card>
   );
-} 
+}

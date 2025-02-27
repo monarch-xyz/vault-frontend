@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
-import { FiSun, FiMoon } from "react-icons/fi";
-import AccountConnect from './AccountConnect';
+import { FiSun, FiMoon } from 'react-icons/fi';
 import { AGENT_NAME } from '@/utils/constants';
+import AccountConnect from './AccountConnect';
 
 export type HeaderProps = {
   ghost?: boolean;
@@ -12,18 +12,14 @@ type ScrollState = 'at-top' | 'scrolling-up' | 'scrolling-down';
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  
+
   return (
     <button
       onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className="flex items-center justify-center rounded-full p-2 text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+      className="flex items-center justify-center rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800"
       aria-label="Toggle theme"
     >
-      {theme === 'dark' ? (
-        <FiSun className="h-4 w-4" />
-      ) : (
-        <FiMoon className="h-4 w-4" />
-      )}
+      {theme === 'dark' ? <FiSun className="h-4 w-4" /> : <FiMoon className="h-4 w-4" />}
     </button>
   );
 }
@@ -59,12 +55,12 @@ function Header({ ghost }: HeaderProps) {
         className="bg-main fixed left-0 right-0 top-0 flex h-[120px] justify-center pt-8"
         style={{ zIndex: 40 }}
       >
-        <div className="sticky top-0 z-50 w-full bg-surface/80 backdrop-blur-lg">
+        <div className="bg-surface/80 sticky top-0 z-50 w-full backdrop-blur-lg">
           <div className="container mx-auto">
-            <nav className="bg-surface flex h-[72px] w-full items-center justify-between px-4 rounded-md">
-                <div className="flex h-8 items-center justify-start gap-4 text-xl dark:text-gray-200 font-zen">
-                  {AGENT_NAME} AI
-                </div>
+            <nav className="bg-surface flex h-[72px] w-full items-center justify-between rounded-md px-4">
+              <div className="flex h-8 items-center justify-start gap-4 font-zen text-xl dark:text-gray-200">
+                {AGENT_NAME} AI
+              </div>
               <div className="flex items-center gap-4">
                 <ThemeToggle />
                 <AccountConnect />

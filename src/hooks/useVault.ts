@@ -1,9 +1,9 @@
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { usePublicClient } from 'wagmi';
-import { URLS } from '@/utils/urls';
-import { useEffect, useState } from 'react';
-import { MORPHO } from '@/utils/morpho';
 import morphoABI from '@/abis/morpho';
+import { MORPHO } from '@/utils/morpho';
+import { URLS } from '@/utils/urls';
 
 const vaultAddress = '0x346aac1e83239db6a6cb760e95e13258ad3d1a6d';
 
@@ -78,15 +78,15 @@ const graphqlFetcher = async (
 ): Promise<VaultResponse> => {
   const response = await fetch(URLS.MORPHO_BLUE_API, {
     method: 'POST',
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       // Add cache control headers
       'Cache-Control': 'no-cache',
-      'Pragma': 'no-cache'
+      Pragma: 'no-cache',
     },
-    body: JSON.stringify({ 
-      query, 
-      variables
+    body: JSON.stringify({
+      query,
+      variables,
     }),
   });
 
@@ -149,7 +149,14 @@ export const useVault = () => {
           ]);
 
           // Parse market state array - we only need totalSupplyAssets and totalSupplyShares
-          const [totalSupplyAssets, totalSupplyShares] = marketStateArray as [bigint, bigint, bigint, bigint, bigint, bigint];
+          const [totalSupplyAssets, totalSupplyShares] = marketStateArray as [
+            bigint,
+            bigint,
+            bigint,
+            bigint,
+            bigint,
+            bigint,
+          ];
 
           return {
             marketId: allocation.market.uniqueKey,
@@ -164,15 +171,17 @@ export const useVault = () => {
         const marketsData = await Promise.all(marketDataPromises);
 
         // Calculate actual assets from shares
-        const updatedAllocation = queryResponse.data.state.allocation.map(allocation => {
-          const marketData = marketsData.find(m => m.marketId === allocation.market.uniqueKey);
+        const updatedAllocation = queryResponse.data.state.allocation.map((allocation) => {
+          const marketData = marketsData.find((m) => m.marketId === allocation.market.uniqueKey);
           if (!marketData) return allocation;
 
           // Calculate assets from shares using the formula:
           // assets = (shares * totalAssets) / totalShares
-          const assets = marketData.marketState.totalSupplyShares > 0n
-            ? (marketData.supplyShares * marketData.marketState.totalSupplyAssets) / marketData.marketState.totalSupplyShares
-            : 0n;
+          const assets =
+            marketData.marketState.totalSupplyShares > 0n
+              ? (marketData.supplyShares * marketData.marketState.totalSupplyAssets) /
+                marketData.marketState.totalSupplyShares
+              : 0n;
 
           return {
             ...allocation,
