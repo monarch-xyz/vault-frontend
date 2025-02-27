@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useWebSocket } from '@/contexts/WebSocketContext';
-import { ActivityType } from './useStatus';
-import { AGENT_NAME } from '@/utils/constants';
+import { AGENT_NAME, ActivityType } from '@/utils/constants';
 
 // Types of logs we want to aggregate - only transaction events
 const AGGREGATABLE_EVENTS = [
@@ -11,31 +10,6 @@ const AGGREGATABLE_EVENTS = [
   ActivityType.MB_REPAY_DETECTED,
   ActivityType.MV_DEPOSIT_DETECTED,
   ActivityType.MV_WITHDRAWAL_DETECTED,
-];
-
-// Special log pairs that we want to handle together - reasoning and analysis
-const PAIRED_LOGS = {
-  'reasoning_started': 'reasoning_completed',
-  'analysis_started': 'analysis_completed',
-};
-
-// Events to exclude from live logs - status updates that should be in useStatus
-const EXCLUDE_EVENTS = [
-  // Agent lifecycle & basic status
-  'log_idle',
-  'idle',
-  'agent_started',
-  'agent_stopping',
-  
-  // Monitoring status
-  'watching_markets',
-  'watching_vault',
-  'status_update',
-  'heartbeat',
-  
-  // Message handling - already in chat
-  ActivityType.MESSAGE_RECEIVED,
-  ActivityType.MESSAGE_RESPONDING,
 ];
 
 // Log entry interface
@@ -56,11 +30,17 @@ export interface LogEntry {
 interface AggregateData {
   eventType: string;
   count: number;
-  markets: Set<string>;
+  markets: string[];
   totalAmount: number;
   firstTimestamp: number;
   lastTimestamp: number;
   events: any[];
+}
+
+// Interface for log generators
+interface LogGenerator {
+  generateLog: (activityType: string, data: any) => LogEntry | null;
+  updateExisting?: (existingEntries: LogEntry[], data: any) => LogEntry[] | null;
 }
 
 export function useLiveLogs() {
@@ -72,184 +52,46 @@ export function useLiveLogs() {
 
   console.log('liveLogEntries', liveLogEntries)
   
-  // Process incoming logs
-  useEffect(() => {
-    if (!logs.length || !connected) return;
-    
-    try {
-      // Process the latest log
-      const latestLog = logs[logs.length - 1];
-      const logData = JSON.parse(latestLog);
-      
-      // Only process activity logs
-      if (logData.type === 'activity' && logData.data && logData.data.type) {
-        const activityType = logData.data.type;
-        
-        // Skip excluded events
-        if (EXCLUDE_EVENTS.some(event => activityType.includes(event))) {
-          return;
-        }
-        
-        // Check if this is an aggregatable event
-        if (AGGREGATABLE_EVENTS.includes(activityType)) {
-          // Add to aggregation
-          updateAggregatedLog(activityType, logData.data);
-        }
-        // Handle reasoning started event
-        else if (activityType === ActivityType.REASONING_STARTED) {
-          handleReasoningStarted(logData.data);
-        }
-        // Handle reasoning completed event
-        else if (activityType === ActivityType.REASONING_COMPLETED) {
-          handleReasoningCompleted(logData.data);
-        }
-        // Handle data fetching events
-        else if (activityType === ActivityType.MARKET_DATA_FETCHED || 
-                 activityType === ActivityType.VAULT_DATA_FETCHED) {
-          addDataFetchingLog(activityType, logData.data);
-        }
-        else {
-          // Add regular log
-          addRegularLog(activityType, logData.data);
-        }
-      }
-    } catch (error) {
-      console.error("Failed to parse log message", error);
-    }
-  }, [logs, connected]);
-  
-  // Function to add regular (non-aggregated) logs
-  const addRegularLog = (activityType: string, data: any) => {
-    const logEntry: LogEntry = {
-      id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: activityType,
-      message: generateLogMessage(activityType, data),
-      timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
-      data: data
-    };
-    
-    setLiveLogEntries(prev => [logEntry, ...prev].slice(0, 100)); // Keep only the latest 100 logs
-  };
-  
-  // Simplified handler for reasoning_started events
-  const handleReasoningStarted = (data: any) => {
-    const reasoningId = generateReasoningId();
-    const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
-    
-    const logEntry: LogEntry = {
-      id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: ActivityType.REASONING_STARTED,
-      message: data.prompt || '...',  // Just store the prompt as the message
-      timestamp,
-      data: {
-        ...data,
-        prompt: data.prompt || '',
-        // Add a title field for the header text
-        title: `${AGENT_NAME} is thinking about...`
-      },
-      isLoading: true,
-      reasoningId,
-      reasoningType: 'thinking'
-    };
-    
-    setLiveLogEntries(prev => [logEntry, ...prev].slice(0, 100));
-  };
-  
-  // Simplified handler for reasoning_completed events
-  const handleReasoningCompleted = (data: any) => {
-    setLiveLogEntries(prevEntries => {
-      // Try to find the most recent reasoning_started log
-      const startIndex = prevEntries.findIndex(
-        entry => entry.type === ActivityType.REASONING_STARTED && entry.isLoading
-      );
-      
-      if (startIndex === -1) {
-        // If no matching start found, just add a standalone reasoning completion log
-        const logEntry: LogEntry = {
-          id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          type: ActivityType.REASONING_COMPLETED,
-          message: data.prompt || 'Completed thinking', // Keep just the prompt
-          timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
-          data: {
-            ...data,
-            title: `${AGENT_NAME} completed thinking`
-          },
-          reasoningType: 'thinking'
-        };
-        return [logEntry, ...prevEntries].slice(0, 100);
-      }
-      
-      // Update the existing entry
-      const updatedEntries = [...prevEntries];
-      updatedEntries[startIndex] = {
-        ...updatedEntries[startIndex],
-        type: ActivityType.REASONING_COMPLETED,
-        message: updatedEntries[startIndex].data.prompt || '', // Keep the prompt as the main message
-        data: {
-          ...updatedEntries[startIndex].data,
-          ...data,
-          title: `${AGENT_NAME} completed thinking`,
-          originalPrompt: updatedEntries[startIndex].data.prompt // Keep record of the original prompt
-        },
-        isLoading: false
-      };
-      
-      return updatedEntries;
-    });
-  };
-  
-  // Add data fetching logs as regular logs
-  const addDataFetchingLog = (activityType: string, data: any) => {
-    const logEntry: LogEntry = {
-      id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      type: activityType,
-      message: generateDataFetchingMessage(activityType, data),
-      timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
-      data: data,
-      toolType: 'data_tool'
-    };
-    
-    setLiveLogEntries(prev => [logEntry, ...prev].slice(0, 100));
-  };
-  
-  // Generate message for data fetching logs
-  const generateDataFetchingMessage = (activityType: string, data: any): string => {
-    switch (activityType) {
-      case ActivityType.MARKET_DATA_FETCHED:
-        return `${AGENT_NAME} used market data tool${data.market_id ? ` for ${data.market_id}` : ''}`;
-      case ActivityType.VAULT_DATA_FETCHED:
-        return `${AGENT_NAME} used vault data tool${data.vault_address ? ` for ${formatAddress(data.vault_address)}` : ''}`;
+  // Helper functions
+  const formatEventType = (eventType: string): string => {
+    switch (eventType) {
+      case ActivityType.MB_DEPOSIT_DETECTED:
+        return 'Deposit';
+      case ActivityType.MB_WITHDRAWAL_DETECTED:
+        return 'Withdrawal';
+      case ActivityType.MB_BORROW_DETECTED:
+        return 'Borrow';
+      case ActivityType.MB_REPAY_DETECTED:
+        return 'Repayment';
+      case ActivityType.MV_DEPOSIT_DETECTED:
+        return 'Vault Deposit';
+      case ActivityType.MV_WITHDRAWAL_DETECTED:
+        return 'Vault Withdrawal';
       default:
-        return `${AGENT_NAME} used tool: ${activityType.replace(/_/g, ' ')}`;
+        return eventType.replace(/_/g, ' ').toLowerCase();
     }
   };
   
-  // Generate message for regular logs
-  const generateLogMessage = (activityType: string, data: any): string => {
-    switch (activityType) {
-      case ActivityType.AGENT_STARTED:
-        return `${AGENT_NAME} has started up and is ready`;
-      case ActivityType.AGENT_STOPPING:
-        return `${AGENT_NAME} is shutting down`;
-      case ActivityType.PERIODIC_ANALYSIS_STARTED:
-        return `${AGENT_NAME} is starting a periodic market analysis`;
-      case ActivityType.PERIODIC_ANALYSIS_COMPLETED:
-        return `${AGENT_NAME} has completed the market analysis`;
-      case ActivityType.TX_REALLOCATION:
-        return `${AGENT_NAME} is reallocating assets`;
-      case ActivityType.TX_GET_ASSET_SHARE:
-        return `${AGENT_NAME} is calculating asset shares`;
-      case ActivityType.MESSAGE_RECEIVED:
-        return `${data.sender ? `Message received from ${formatAddress(data.sender)}` : 'New message received'}`;
-      case ActivityType.MESSAGE_RESPONDING:
-        return `${AGENT_NAME} is responding to a message`;
-      default:
-        return `${activityType.replace(/_/g, ' ').toLowerCase()}`;
-    }
+  const formatAmount = (amount: number): string => {
+    return amount?.toLocaleString(undefined, { 
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) || '0.00';
   };
+  
+  const formatAddress = (address: string): string => {
+    return address?.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
+  };
+  
+  // Generate a unique ID
+  const generateId = (prefix: string = 'log') => 
+    `${prefix}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  // Function to generate a unique reasoning ID
+  const generateReasoningId = () => generateId('reason');
   
   // Generate message for aggregated logs
-  const generateAggregatedMessage = (agg: any): string => {
+  const generateAggregatedMessage = (agg: AggregateData): string => {
     const { count, totalAmount, markets, events } = agg;
     
     // Count events by type
@@ -271,13 +113,175 @@ export function useLiveLogs() {
         .map(([type, count]) => `${count} ${formatEventType(type)}${count !== 1 ? 's' : ''}`)
         .join(', ');
       
-      const marketsCount = Array.isArray(markets) ? markets.length : 0;
+      const marketsCount = markets.length;
       
       return `${count} transactions (${typeDescriptions}) totaling ${formatAmount(totalAmount)} USDC across ${marketsCount} market${marketsCount !== 1 ? 's' : ''}`;
     }
   };
   
-  // Add or update aggregated logs immediately
+  // Define log generators for each activity type we want to include
+  const logGenerators: Record<string, LogGenerator> = {
+    // System events
+    [ActivityType.AGENT_STARTED]: {
+      generateLog: (activityType, data) => ({
+        id: generateId(),
+        type: activityType,
+        message: `${AGENT_NAME} has started up and is ready`,
+        timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+        data: data
+      })
+    },
+    
+    [ActivityType.AGENT_STOPPING]: {
+      generateLog: (activityType, data) => ({
+        id: generateId(),
+        type: activityType,
+        message: `${AGENT_NAME} is shutting down`,
+        timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+        data: data
+      })
+    },
+    
+    // Analysis events
+    [ActivityType.PERIODIC_ANALYSIS_STARTED]: {
+      generateLog: (activityType, data) => ({
+        id: generateId(),
+        type: activityType,
+        message: `${AGENT_NAME} is starting a periodic market analysis`,
+        timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+        data: data
+      })
+    },
+    
+    [ActivityType.PERIODIC_ANALYSIS_COMPLETED]: {
+      generateLog: (activityType, data) => ({
+        id: generateId(),
+        type: activityType,
+        message: `${AGENT_NAME} has completed the market analysis`,
+        timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+        data: data
+      })
+    },
+    
+    // Transaction events
+    [ActivityType.TX_REALLOCATION]: {
+      generateLog: (activityType, data) => ({
+        id: generateId(),
+        type: activityType,
+        message: `${AGENT_NAME} is reallocating assets`,
+        timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+        data: data
+      })
+    },
+    
+    [ActivityType.TX_GET_ASSET_SHARE]: {
+      generateLog: (activityType, data) => ({
+        id: generateId(),
+        type: activityType,
+        message: `${AGENT_NAME} is calculating asset shares`,
+        timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+        data: data
+      })
+    },
+    
+    // Data tool events
+    [ActivityType.MARKET_DATA_FETCHED]: {
+      generateLog: (activityType, data) => ({
+        id: generateId(),
+        type: activityType,
+        message: `${AGENT_NAME} used market data tool${data.market_id ? ` for ${data.market_id}` : ''}`,
+        timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+        data: data,
+        toolType: 'data_tool'
+      })
+    },
+    
+    [ActivityType.VAULT_DATA_FETCHED]: {
+      generateLog: (activityType, data) => ({
+        id: generateId(),
+        type: activityType,
+        message: `${AGENT_NAME} used vault data tool${data.vault_address ? ` for ${formatAddress(data.vault_address)}` : ''}`,
+        timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+        data: data,
+        toolType: 'data_tool'
+      })
+    },
+    
+    // Reasoning events - special handling
+    [ActivityType.REASONING_STARTED]: {
+      generateLog: (activityType, data) => {
+        const reasoningId = generateReasoningId();
+        const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
+        
+        return {
+          id: generateId(),
+          type: ActivityType.REASONING_STARTED,
+          message: data.prompt || '...',
+          timestamp,
+          data: {
+            ...data,
+            prompt: data.prompt || '',
+            title: `${AGENT_NAME} is thinking about...`
+          },
+          isLoading: true,
+          reasoningId,
+          reasoningType: 'thinking'
+        };
+      }
+    },
+    
+    [ActivityType.REASONING_COMPLETED]: {
+      generateLog: () => null, // No standalone log
+      updateExisting: (prevEntries, data) => {
+        // Try to find the most recent reasoning_started log
+        const startIndex = prevEntries.findIndex(
+          entry => entry.type === ActivityType.REASONING_STARTED && entry.isLoading
+        );
+        
+        if (startIndex === -1) {
+          // If no matching start found, just add a standalone reasoning completion log
+          const logEntry: LogEntry = {
+            id: generateId(),
+            type: ActivityType.REASONING_COMPLETED,
+            message: data.prompt || 'Completed thinking',
+            timestamp: (data.timestamp ? data.timestamp * 1000 : Date.now()),
+            data: {
+              ...data,
+              title: `${AGENT_NAME} completed thinking`
+            },
+            reasoningType: 'thinking'
+          };
+          return [logEntry, ...prevEntries];
+        }
+        
+        // Update the existing entry
+        const updatedEntries = [...prevEntries];
+        updatedEntries[startIndex] = {
+          ...updatedEntries[startIndex],
+          type: ActivityType.REASONING_COMPLETED,
+          message: updatedEntries[startIndex].data.prompt || '',
+          data: {
+            ...updatedEntries[startIndex].data,
+            ...data,
+            title: `${AGENT_NAME} completed thinking`,
+            originalPrompt: updatedEntries[startIndex].data.prompt
+          },
+          isLoading: false
+        };
+        
+        return updatedEntries;
+      }
+    }
+  };
+  
+  // Special handler for aggregatable events
+  AGGREGATABLE_EVENTS.forEach(eventType => {
+    logGenerators[eventType] = {
+      generateLog: () => null, // We handle these in a special way via updateAggregatedLog
+    };
+  });
+  
+  // Function to update aggregated logs
   const updateAggregatedLog = (eventType: string, data: any) => {
     const timestamp = data.timestamp ? data.timestamp * 1000 : Date.now();
     
@@ -292,11 +296,13 @@ export function useLiveLogs() {
       if (existingEntryIndex >= 0) {
         const updatedEntries = [...prevEntries];
         const existingEntry = updatedEntries[existingEntryIndex];
-        const aggregateData = existingEntry.data || {
+        const aggregateData: AggregateData = existingEntry.data || {
           eventType: 'morpho_events',
           count: 0,
           markets: [],
           totalAmount: 0,
+          firstTimestamp: timestamp,
+          lastTimestamp: timestamp,
           events: []
         };
         
@@ -335,12 +341,11 @@ export function useLiveLogs() {
           data: aggregateData
         };
         
-        console.log('Updated aggregated entry:', updatedEntries[existingEntryIndex]);
         return updatedEntries;
       }
       
       // Create a new aggregated entry
-      const newAggregateData = {
+      const newAggregateData: AggregateData = {
         eventType: 'morpho_events',
         count: 1,
         markets: data.market_id ? [data.market_id] : [],
@@ -354,7 +359,7 @@ export function useLiveLogs() {
       };
       
       const newEntry: LogEntry = {
-        id: `agg-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        id: generateId('agg'),
         type: 'morpho_events',
         message: generateAggregatedMessage(newAggregateData),
         timestamp,
@@ -362,10 +367,51 @@ export function useLiveLogs() {
         isAggregated: true
       };
       
-      console.log('Created new aggregated entry:', newEntry);
-      return [newEntry, ...prevEntries].slice(0, 100); // Keep only the latest 100 entries
+      return [newEntry, ...prevEntries];
     });
   };
+  
+  // Process incoming logs
+  useEffect(() => {
+    if (!logs.length || !connected) return;
+    
+    try {
+      // Process the latest log
+      const latestLog = logs[logs.length - 1];
+      const logData = JSON.parse(latestLog);
+      
+      // Only process activity logs
+      if (logData.type === 'activity' && logData.data && logData.data.type) {
+        const activityType = logData.data.type;
+        
+        // Check if we have a generator for this activity type
+        const generator = logGenerators[activityType];
+        
+        if (generator) {
+          // Check if this event updates an existing entry
+          if (generator.updateExisting) {
+            const updatedEntries = generator.updateExisting(liveLogEntries, logData.data);
+            if (updatedEntries) {
+              setLiveLogEntries(updatedEntries.slice(0, 100)); // Keep the latest 100 logs
+            }
+          }
+          
+          // Generate a new log if needed
+          const logEntry = generator.generateLog(activityType, logData.data);
+          if (logEntry) {
+            setLiveLogEntries(prev => [logEntry, ...prev].slice(0, 100));
+          }
+        }
+        
+        // Special handling for aggregatable events
+        if (AGGREGATABLE_EVENTS.includes(activityType)) {
+          updateAggregatedLog(activityType, logData.data);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to parse log message", error);
+    }
+  }, [logs, connected]);
   
   // Cleanup on unmount
   useEffect(() => {
@@ -375,60 +421,6 @@ export function useLiveLogs() {
       }
     };
   }, []);
-  
-  // Helper functions
-  const formatEventType = (eventType: string): string => {
-    switch (eventType) {
-      case ActivityType.MB_DEPOSIT_DETECTED:
-        return 'Deposit';
-      case ActivityType.MB_WITHDRAWAL_DETECTED:
-        return 'Withdrawal';
-      case ActivityType.MB_BORROW_DETECTED:
-        return 'Borrow';
-      case ActivityType.MB_REPAY_DETECTED:
-        return 'Repayment';
-      case ActivityType.MV_DEPOSIT_DETECTED:
-        return 'Vault Deposit';
-      case ActivityType.MV_WITHDRAWAL_DETECTED:
-        return 'Vault Withdrawal';
-      default:
-        return eventType.replace(/_/g, ' ').toLowerCase();
-    }
-  };
-  
-  const formatAmount = (amount: number): string => {
-    return amount?.toLocaleString(undefined, { 
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }) || '0.00';
-  };
-  
-  const formatAddress = (address: string): string => {
-    return address?.length > 10 ? `${address.slice(0, 6)}...${address.slice(-4)}` : address;
-  };
-  
-  // Function to determine if an event is significant enough to log
-  const isSignificantEvent = (eventType: string): boolean => {
-    // List of significant events to include
-    const significantEvents = [
-      ActivityType.AGENT_STARTED,
-      ActivityType.AGENT_STOPPING,
-      ActivityType.PERIODIC_ANALYSIS_STARTED,
-      ActivityType.PERIODIC_ANALYSIS_COMPLETED,
-      ActivityType.TX_REALLOCATION,
-      ActivityType.TX_GET_ASSET_SHARE,
-      ActivityType.MESSAGE_RECEIVED,
-      ActivityType.MESSAGE_RESPONDING,
-      'transaction_submitted',
-      'transaction_confirmed',
-      'transaction_failed',
-    ];
-    
-    return significantEvents.some(event => eventType.includes(event));
-  };
-  
-  // Function to generate a unique reasoning ID
-  const generateReasoningId = () => `reason-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   
   return {
     logs: liveLogEntries,

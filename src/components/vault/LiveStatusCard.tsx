@@ -1,8 +1,8 @@
 import { Card, CardHeader, CardBody } from '@nextui-org/card';
 import { RiRobot2Fill } from 'react-icons/ri';
 import { LiveLogSection } from './LiveLogSection';
-import { AGENT_NAME } from '@/utils/constants';
-import { useStatus, ActivityType } from '@/hooks/useStatus';
+import { AGENT_NAME, ActivityType } from '@/utils/constants';
+import { useStatus } from '@/hooks/useStatus';
 
 function AgentStatusSection() {
   const { 
