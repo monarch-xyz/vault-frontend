@@ -265,3 +265,35 @@ pre {
   border-radius: 20px;
   border: transparent;
 }
+
+/* Status animation styles */
+.status-emoji-container, 
+.status-message-container {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+.status-emoji-container.flipping,
+.status-message-container.flipping {
+  transform: rotateX(180deg);
+}
+
+.status-emoji-container span,
+.status-message-container span {
+  backface-visibility: hidden;
+  transition: opacity 0.25s ease;
+}
+
+.status-emoji-container.flipping span,
+.status-message-container.flipping span {
+  opacity: 0;
+  transition-delay: 0.25s;
+}
+
+/* Ensure content is visible after flip completes */
+.status-emoji-container:not(.flipping) span,
+.status-message-container:not(.flipping) span {
+  opacity: 1;
+  transition-delay: 0.25s;
+} 

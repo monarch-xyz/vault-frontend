@@ -1,19 +1,90 @@
 import { Card, CardHeader, CardBody } from '@nextui-org/card';
 import { RiRobot2Fill } from 'react-icons/ri';
-import { ChatSection } from './ChatSection';
-import { AGENT_NAME } from '@/utils/constants';
+import { LiveLogSection } from './LiveLogSection';
+import { AGENT_NAME, ActivityType } from '@/utils/constants';
+import { useStatus } from '@/hooks/useStatus';
 
 function AgentStatusSection() {
+  const { 
+    getStatusMessage, 
+    getStatusEmoji, 
+    isConnected, 
+    isReconnecting,
+    status 
+  } = useStatus();
+  
+  // Get appropriate status text based on connection state
+  const getDisplayMessage = () => {
+    if (!isConnected) {
+      return isReconnecting 
+        ? `${AGENT_NAME} is reconnecting...` 
+        : `${AGENT_NAME} is offline`;
+    }
+    
+    if (status.activity === ActivityType.AGENT_STARTED) {
+      return `${AGENT_NAME} is now online!`;
+    }
+    
+    return getStatusMessage();
+  };
+  
+  // Get appropriate emoji based on connection state
+  const getDisplayEmoji = () => {
+    if (!isConnected) {
+      return isReconnecting ? '🔄' : '😴';
+    }
+    
+    if (status.activity === ActivityType.AGENT_STARTED) {
+      return '🚀';
+    }
+    
+    return getStatusEmoji();
+  };
+  
+  // Get connection status indicator color
+  const getConnectionColor = () => {
+    if (!isConnected) {
+      return 'bg-yellow-500'; // Yellow for disconnected or reconnecting
+    }
+    return 'bg-green-500'; // Green for connected
+  };
+  
   return (
-    <div className="flex items-center justify-center gap-2 p-2 border-b border-gray-200 dark:border-gray-800 mb-4">
-      <div className="flex items-center gap-2 rounded-lg bg-green-50/50 dark:bg-green-950/30 px-3 py-1">
-        <div className="relative flex items-center gap-1.5">
-          <RiRobot2Fill className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-          <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+    <div className="flex items-center justify-between pb-[12px] border-b border-gray-200 dark:border-gray-800 mb-2">
+      {/* Agent profile and status */}
+      <div className="flex items-center gap-2">
+        {/* Agent avatar with status indicator */}
+        <div className="relative">
+          {/* Agent avatar/profile picture */}
+          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center overflow-hidden">
+            <RiRobot2Fill className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          
+          {/* Connection status indicator in bottom right corner */}
+          <div className={`absolute -bottom-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full bg-white dark:bg-gray-800 border-2 border-white dark:border-gray-800`}>
+            <div className={`w-2 h-2 rounded-full ${getConnectionColor()}`}></div>
+          </div>
         </div>
-        <span className="text-xs text-green-700 dark:text-green-300">
-          {AGENT_NAME} is Live
-        </span>
+        
+        {/* Agent name, status emoji and message with simple transition */}
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1">
+            <span className="font-medium text-sm">{AGENT_NAME}</span>
+            <span 
+              className="text-sm transition-all duration-300 ease-in-out" 
+              title={isConnected ? status.category : (isReconnecting ? 'reconnecting' : 'offline')}
+            >
+              {getDisplayEmoji()}
+            </span>
+          </div>
+          
+          {/* Status message with simple transition */}
+          <div className="transition-all duration-300 ease-in-out">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {getDisplayMessage()}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -21,20 +92,20 @@ function AgentStatusSection() {
 
 export function LiveStatusCard() {
   return (
-    <Card className="bg-surface h-[600px] p-4 font-zen shadow-md rounded-md">
-      <CardHeader className="flex items-center justify-between">
+    <Card className="bg-surface h-[600px] pt-4 px-4 font-zen shadow-md rounded-md">
+      <CardHeader className="flex items-center justify-between py-2 px-3">
         <span className="text-lg">Live Status</span>
       </CardHeader>
 
-      <CardBody className="pt-4">
+      <CardBody className="pt-2 px-4 pb-4">
         <div className="flex flex-col h-full">
           {/* Status Section */}
           <AgentStatusSection />
 
           {/* Chat Section */}
           <div className="flex-1 overflow-y-auto hide-scrollbar">
-            <div className="pr-2">
-              <ChatSection />
+            <div className="pt-1">
+              <LiveLogSection />
             </div>
           </div>
         </div>
