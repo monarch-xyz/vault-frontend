@@ -6,6 +6,14 @@ import { ActivitiesSection } from './ActivitiesSection';
 import { ActivityTypeButton } from './ActivityTypeButton';
 
 export const activityTypes = {
+  action: {
+    label: 'Actions',
+    description: 'The on-chain transactions, web searches, and other actions',
+    icon: BiTransfer,
+    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
+    borderColor: 'border-green-100 dark:border-green-900',
+    iconColor: 'text-green-600 dark:text-green-400',
+  },
   report: {
     label: 'Reports',
     description: 'Formal summaries of actions and market conditions',
@@ -21,14 +29,6 @@ export const activityTypes = {
     bgColor: 'bg-purple-50/50 dark:bg-purple-950/30',
     borderColor: 'border-purple-100 dark:border-purple-900',
     iconColor: 'text-purple-600 dark:text-purple-400',
-  },
-  action: {
-    label: 'Actions',
-    description: 'The on-chain transactions, web searches, and other actions',
-    icon: BiTransfer,
-    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
-    borderColor: 'border-green-100 dark:border-green-900',
-    iconColor: 'text-green-600 dark:text-green-400',
   },
 } as const;
 

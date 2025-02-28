@@ -2,21 +2,32 @@ import { useState } from 'react';
 import { Modal, ModalContent, ModalBody } from '@nextui-org/modal';
 import { format } from 'date-fns';
 import moment from 'moment';
-import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp, BiChevronRight } from 'react-icons/bi';
+import { BiBrain, BiTransfer, BiChevronRight } from 'react-icons/bi';
 import { TbReportAnalytics } from 'react-icons/tb';
-import ReactMarkdown from 'react-markdown';
 import { Badge } from '@/components/common/Badge';
 import { Spinner } from '@/components/common/Spinner';
 import { MarkdownText } from '@/components/MarkdownText';
-import { MarketSpan } from '@/components/common/MarketSpan';
 import { useActivities } from '@/hooks/useActivities';
 import { useVaultReallocations } from '@/hooks/useVaultReallocations';
-import { formatUnits } from 'viem';
 import { ReallocationActivity } from '@/components/vault/ReallocationActivity';
 
 const activityTypes = {
+  action: {
+    label: 'Action',
+    order: 1,
+    description: 'On-chain reallocation transactions',
+    icon: BiTransfer,
+    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
+    borderColor: 'border-green-100 dark:border-green-900',
+    iconColor: 'text-green-600 dark:text-green-400',
+    badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
+    subTypes: {
+      reallocation: 'Reallocation',
+    },
+  },
   report: {
     label: 'Report',
+    order: 2,
     description: 'Periodic summaries and market updates',
     icon: TbReportAnalytics,
     bgColor: 'bg-blue-50/50 dark:bg-blue-950/30',
@@ -31,6 +42,7 @@ const activityTypes = {
   },
   think: {
     label: 'Thought',
+    order: 3,
     description: 'Agent reasoning and analysis process',
     icon: BiBrain,
     bgColor: 'bg-purple-50/50 dark:bg-purple-950/30',
@@ -40,18 +52,6 @@ const activityTypes = {
     subTypes: {
       analysis: 'Analysis',
       strategy: 'Strategy',
-    },
-  },
-  action: {
-    label: 'Action',
-    description: 'On-chain reallocation transactions',
-    icon: BiTransfer,
-    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
-    borderColor: 'border-green-100 dark:border-green-900',
-    iconColor: 'text-green-600 dark:text-green-400',
-    badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
-    subTypes: {
-      reallocation: 'Reallocation',
     },
   },
 } as const;
