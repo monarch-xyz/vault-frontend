@@ -24,6 +24,8 @@ type VaultAsset = {
 type VaultState = {
   dailyApy: number;
   apy: number;
+  dailyNetApy: number;
+  netApy: number;
   totalAssets: number;
   totalAssetsUsd: number;
   allocation: VaultAllocation[];
@@ -53,7 +55,9 @@ const vaultQuery = `
     vaultByAddress(address: "${vaultAddress}", chainId: 8453) {
       state {
         dailyApy
+        dailyNetApy
         apy
+        netApy
         totalAssets
         totalAssetsUsd
         allocation {

@@ -1,7 +1,7 @@
+import Image from 'next/image';
 import { useState } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@nextui-org/modal';
 import { Tooltip } from '@nextui-org/tooltip';
-import Image from 'next/image';
 import { BsQuestionCircle } from 'react-icons/bs';
 import { IoMdRefresh } from 'react-icons/io';
 import { RiRobot2Fill } from 'react-icons/ri';
@@ -21,6 +21,8 @@ const USDC = {
   decimals: 6,
   address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
+
+const MorphoLogo = require('../../../src/imgs/tokens/morpho.svg') as string;
 
 function AllocationDescription() {
   return (
@@ -162,17 +164,57 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                 </Tooltip>
               </div>
             </div>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-8">
               <div>
                 <div className="text-xs text-gray-500">Current APY</div>
-                <div className="text-sm text-primary">
-                  {vault?.state.apy ? (vault.state.apy * 100).toFixed(2) : '0.00'}%
+                <div className="flex items-center gap-1">
+                  <div className="text-sm text-primary">
+                    {vault?.state.apy ? (vault.state.apy * 100).toFixed(2) : '0.00'}%
+                  </div>
+                  {vault?.state.netApy && vault.state.netApy > vault.state.apy && (
+                    <Tooltip
+                      className="rounded-sm"
+                      content={
+                        <TooltipContent
+                          icon={<Image src={MorphoLogo} alt="Morpho" width={16} height={16} />}
+                          title={`Total APY with Rewards`}
+                          detail={`${(vault.state.netApy * 100).toFixed(2)}% including Morpho token rewards on top of base lending APY`}
+                        />
+                      }
+                    >
+                      <div className="flex items-center text-primary">
+                        <span className="text-xs">(+{Math.max(0, ((vault.state.netApy - vault.state.apy) * 100)).toFixed(2)}%</span>
+                        <Image src={MorphoLogo} alt="Morpho" width={16} height={16} className="ml-0.5" />
+                        <span className="text-xs">)</span>
+                      </div>
+                    </Tooltip>
+                  )}
                 </div>
               </div>
               <div>
                 <div className="text-xs text-gray-500">Daily APY</div>
-                <div className="text-sm text-primary">
-                  {vault?.state.dailyApy ? (vault.state.dailyApy * 100).toFixed(2) : '0.00'}%
+                <div className="flex items-center gap-1">
+                  <div className="text-sm text-primary">
+                    {vault?.state.dailyApy ? (vault.state.dailyApy * 100).toFixed(2) : '0.00'}%
+                  </div>
+                  {vault?.state.dailyNetApy && vault.state.dailyNetApy > vault.state.dailyApy && (
+                    <Tooltip
+                      className="rounded-sm"
+                      content={
+                        <TooltipContent
+                          icon={<Image src={MorphoLogo} alt="Morpho" width={16} height={16} />}
+                          title={`Total Daily APY with Rewards`}
+                          detail={`Daily rate -- ${(vault.state.dailyNetApy * 100).toFixed(2)}% including Morpho token rewards on top of base lending APY`}
+                        />
+                      }
+                    >
+                      <div className="flex items-center text-primary">
+                        <span className="text-xs">(+{Math.max(0, ((vault.state.dailyNetApy - vault.state.dailyApy) * 100)).toFixed(2)}%</span>
+                        <Image src={MorphoLogo} alt="Morpho" width={16} height={16} className="ml-0.5" />
+                        <span className="text-xs">)</span>
+                      </div>
+                    </Tooltip>
+                  )}
                 </div>
               </div>
             </div>

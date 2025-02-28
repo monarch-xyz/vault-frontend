@@ -1,11 +1,9 @@
 'use client';
 
-import { Tooltip } from '@nextui-org/tooltip';
 import Header from '@/components/layout/header/Header';
 import { ActivityCard } from '@/components/vault/ActivityCard';
 import { LiveStatusCard } from '@/components/vault/LiveStatusCard';
 import { VaultHeaderStats } from '@/components/vault/VaultHeaderStats';
-import { VaultInfoCard } from '@/components/vault/VaultInfoCard';
 
 const USDC = {
   symbol: 'USDC',

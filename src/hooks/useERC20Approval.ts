@@ -1,35 +1,33 @@
 import { useCallback, useMemo } from 'react';
 import { Address, encodeFunctionData, erc20Abi } from 'viem';
-import { useAccount, useChainId, useReadContract } from 'wagmi';
+import { useAccount, useReadContract } from 'wagmi';
 import { useTransactionWithToast } from './useTransactionWithToast';
+import { SupportedNetworks } from '@/utils/networks';
+import { waitForTransactionReceipt } from 'viem/actions';
+import { usePublicClient } from 'wagmi';
 
 export function useERC20Approval({
   token,
   spender,
   amount,
   tokenSymbol,
-  chainId,
 }: {
   token: Address;
   spender: Address;
   amount: bigint;
   tokenSymbol: string;
-  chainId?: number;
 }) {
   const { address: account } = useAccount();
-  const currentChain = useChainId();
-
-  const chainIdToUse = chainId ?? currentChain;
-
+  const publicClient = usePublicClient({ chainId: SupportedNetworks.Base });
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: token,
     abi: erc20Abi,
     functionName: 'allowance',
     args: [account as Address, spender],
     query: {
-      enabled: !!account,
+      refetchInterval: 10000,
     },
-    chainId: chainIdToUse,
+    chainId: SupportedNetworks.Base,
   });
 
   const isApproved = useMemo(() => {
@@ -42,15 +40,15 @@ export function useERC20Approval({
     pendingText: `Approving ${tokenSymbol}`,
     successText: `${tokenSymbol} Approved`,
     errorText: 'Failed to approve',
-    chainId: chainIdToUse,
+    chainId: SupportedNetworks.Base,
     pendingDescription: `Approving ${tokenSymbol} for spender ${spender.slice(2, 8)}...`,
     successDescription: `Successfully approved ${tokenSymbol} for spender ${spender.slice(2, 8)}`,
   });
 
   const approve = useCallback(async () => {
-    if (!account || !amount) return;
+    if (!account || !amount || !publicClient) return;
 
-    await sendTransactionAsync({
+    const tx = await sendTransactionAsync({
       account,
       to: token,
       data: encodeFunctionData({
@@ -60,7 +58,8 @@ export function useERC20Approval({
       }),
     });
 
-    await refetchAllowance();
+    // make sure it's confirmed on-chain
+    await publicClient.waitForTransactionReceipt({hash: tx });
   }, [account, amount, sendTransactionAsync, token, spender, refetchAllowance]);
 
   return {
