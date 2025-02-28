@@ -7,7 +7,7 @@ type MarketSpanProps = {
   marketId: string;
   market?: Market;
   className?: string;
-}
+};
 
 export function MarketSpan({ marketId, market, className = '' }: MarketSpanProps) {
   // Format marketId to show first 6 and last 4 characters

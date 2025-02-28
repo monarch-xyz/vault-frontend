@@ -14,7 +14,7 @@ export type LogEntry = {
   reasoningId?: string;
   toolType?: 'data_tool';
   reasoningType?: 'thinking';
-}
+};
 
 // Type for log handler functions
 type LogHandler = (activityType: string, data: any) => void;

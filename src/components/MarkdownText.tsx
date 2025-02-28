@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 type MarkdownTextProps = {
   text: string;
   className?: string;
-}
+};
 
 export function MarkdownText({ text }: MarkdownTextProps) {
   return (

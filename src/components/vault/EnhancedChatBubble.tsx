@@ -8,7 +8,7 @@ import { AGENT_NAME } from '@/utils/constants';
 
 type EnhancedChatBubbleProps = {
   message: ChatMessage;
-}
+};
 
 export function EnhancedChatBubble({ message }: EnhancedChatBubbleProps) {
   const isAgent = message.sender === 'agent';

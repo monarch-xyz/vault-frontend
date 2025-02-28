@@ -12,7 +12,7 @@ type ActivityTypeButtonProps = {
   };
   isSelected: boolean;
   onClick: () => void;
-}
+};
 
 export function ActivityTypeButton({ type, config, isSelected, onClick }: ActivityTypeButtonProps) {
   const Icon = config.icon;

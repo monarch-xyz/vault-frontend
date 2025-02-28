@@ -22,7 +22,7 @@ type DepositModalProps = {
   isOpen: boolean;
   onClose: () => void;
   vaultAddress: string;
-}
+};
 
 export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProps) {
   const { balances } = useUserBalances();

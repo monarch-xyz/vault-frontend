@@ -16,7 +16,7 @@ type WebSocketContextType = {
   reconnecting: boolean;
   connect: () => void;
   disconnect: () => void;
-}
+};
 
 // Create the context with default values
 const WebSocketContext = createContext<WebSocketContextType>({
@@ -34,7 +34,7 @@ type WebSocketProviderProps = {
   maxReconnectAttempts?: number;
   initialBackoffDelay?: number;
   maxBackoffDelay?: number;
-}
+};
 
 export function WebSocketProvider({
   children,

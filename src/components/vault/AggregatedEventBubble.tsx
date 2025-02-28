@@ -14,11 +14,11 @@ type EventTransaction = {
   tx_hash: string;
   timestamp: number;
   sender?: string;
-}
+};
 
 type AggregatedEventBubbleProps = {
   log: LogEntry;
-}
+};
 
 function isSameMarket(a: string, b: string) {
   return a.replace('0x', '').toLowerCase() === b.replace('0x', '').toLowerCase();

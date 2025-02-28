@@ -115,7 +115,7 @@ type StatusInfo = {
   activity: ActivityType; // The specific activity
   category: StatusCategory; // The category this activity belongs to
   timestamp: number; // When this status was set
-}
+};
 
 // Interface for the log message format
 type LogMessage = {
@@ -126,7 +126,7 @@ type LogMessage = {
     sender?: string;
     [key: string]: any; // Other potential fields
   };
-}
+};
 
 export function useStatus() {
   const { logs, connected, reconnecting } = useWebSocket();

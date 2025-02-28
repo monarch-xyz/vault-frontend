@@ -53,9 +53,7 @@ function AgentStatusSection() {
           </div>
 
           {/* Connection status indicator in bottom right corner */}
-          <div
-            className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-white dark:border-gray-800 dark:bg-gray-800"
-          >
+          <div className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-white dark:border-gray-800 dark:bg-gray-800">
             <div className={`h-2 w-2 rounded-full ${getConnectionColor()}`} />
           </div>
         </div>
