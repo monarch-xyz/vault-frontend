@@ -2,10 +2,10 @@
 
 import { Tooltip } from '@nextui-org/tooltip';
 import Header from '@/components/layout/header/Header';
-import { VaultInfoCard } from '@/components/vault/VaultInfoCard';
-import { LiveStatusCard } from '@/components/vault/LiveStatusCard';
 import { ActivityCard } from '@/components/vault/ActivityCard';
+import { LiveStatusCard } from '@/components/vault/LiveStatusCard';
 import { VaultHeaderStats } from '@/components/vault/VaultHeaderStats';
+import { VaultInfoCard } from '@/components/vault/VaultInfoCard';
 
 const USDC = {
   symbol: 'USDC',
@@ -25,7 +25,7 @@ export default function HomeContent() {
         <VaultHeaderStats vaultAddress={vaultAddress} />
 
         {/* Activity and Live Status Cards - Reordered and resized */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
           {/* Activity Card - 1/3 width on desktop */}
           <div className="order-2 lg:order-1 lg:col-span-4">
             <ActivityCard />

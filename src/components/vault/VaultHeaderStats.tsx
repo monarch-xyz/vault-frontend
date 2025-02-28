@@ -1,19 +1,19 @@
-import Image from 'next/image';
 import { useState } from 'react';
-import { IoMdRefresh } from 'react-icons/io';
-import { Button } from '@/components/common/Button';
-import { useVault } from '@/hooks/useVault';
-import { useMarkets } from '@/contexts/MarketsContext';
-import { formatBalance, formatReadable } from '@/utils/balance';
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@nextui-org/modal';
-import { findToken } from '@/utils/tokens';
-import { DepositModal } from './DepositModal';
 import { Tooltip } from '@nextui-org/tooltip';
-import { TooltipContent } from '@/components/TooltipContent';
-import { RiRobot2Fill } from 'react-icons/ri';
+import Image from 'next/image';
 import { BsQuestionCircle } from 'react-icons/bs';
-import { Market } from '@/utils/types';
+import { IoMdRefresh } from 'react-icons/io';
+import { RiRobot2Fill } from 'react-icons/ri';
+import { Button } from '@/components/common/Button';
+import { TooltipContent } from '@/components/TooltipContent';
+import { useMarkets } from '@/contexts/MarketsContext';
+import { useVault } from '@/hooks/useVault';
+import { formatBalance, formatReadable } from '@/utils/balance';
 import { AGENT_NAME } from '@/utils/constants';
+import { findToken } from '@/utils/tokens';
+import { Market } from '@/utils/types';
+import { DepositModal } from './DepositModal';
 
 const USDC = {
   symbol: 'USDC',
@@ -25,18 +25,23 @@ const USDC = {
 function AllocationDescription() {
   return (
     <div className="mb-6 rounded-lg bg-primary/5 p-4">
-      <div className="flex items-center gap-2 text-primary mb-2">
+      <div className="mb-2 flex items-center gap-2 text-primary">
         <RiRobot2Fill className="h-4 w-4" />
-        <span className="font-medium text-sm">{AGENT_NAME} - AI Allocator</span>
+        <span className="text-sm font-medium">{AGENT_NAME} - AI Allocator</span>
       </div>
       <p className="text-sm text-gray-600 dark:text-gray-400">
-        {AGENT_NAME} manages your deposits by analyzing market conditions and automatically allocating funds to optimize returns while maintaining risk levels.
+        {AGENT_NAME} manages your deposits by analyzing market conditions and automatically
+        allocating funds to optimize returns while maintaining risk levels.
       </p>
     </div>
   );
 }
 
-function MarketAllocationRow({ market, amount, totalAssets }: { 
+function MarketAllocationRow({
+  market,
+  amount,
+  totalAssets,
+}: {
   market: Market;
   amount: bigint;
   totalAssets: bigint;
@@ -51,19 +56,19 @@ function MarketAllocationRow({ market, amount, totalAssets }: {
   };
 
   return (
-    <div 
-      className="rounded-lg bg-hovered p-4 border border-divider cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
+    <div
+      className="bg-hovered cursor-pointer rounded-lg border border-divider p-4 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
       onClick={handleMarketClick}
     >
       {/* Top section: Market info + APY */}
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           {token?.img && (
-            <Image 
-              src={token.img} 
-              alt={market.collateralAsset.symbol} 
-              width={24} 
-              height={24} 
+            <Image
+              src={token.img}
+              alt={market.collateralAsset.symbol}
+              width={24}
+              height={24}
               className="rounded-full"
             />
           )}
@@ -75,13 +80,13 @@ function MarketAllocationRow({ market, amount, totalAssets }: {
       </div>
 
       {/* Middle section: Allocation + Progress bar */}
-      <div className="flex items-center gap-2 mb-3">
+      <div className="mb-3 flex items-center gap-2">
         <div className="text-xs text-gray-500">
           {formatBalance(amount, 6)} USDC ({percentage.toFixed(1)}%)
         </div>
-        <div className="flex-1 h-1 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
-          <div 
-            className="h-full bg-primary rounded-full transition-all"
+        <div className="h-1 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <div
+            className="h-full rounded-full bg-primary transition-all"
             style={{ width: `${percentage}%` }}
           />
         </div>
@@ -101,37 +106,43 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   const { data: vault, refetch, isRefetching } = useVault();
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-  
+
   const totalAssets = vault ? BigInt(vault.state.totalAssets) : BigInt(0);
 
   // Get tokens with allocations
-  const tokensWithAllocations = markets && vault?.state.allocation.reduce((acc: any[], allocation: any) => {
-    const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
-    if (!market) return acc;
-    
-    const token = findToken(market.collateralAsset.address, market.morphoBlue.chain.id);
-    if (!token) return acc;
+  const tokensWithAllocations =
+    markets &&
+    vault?.state.allocation
+      .reduce((acc: any[], allocation: any) => {
+        const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
+        if (!market) return acc;
 
-    // Find existing token entry or create new one
-    const existingToken = acc.find(t => token.networks.map(n => n.address).includes(t.token.networks[0].address));
-    if (existingToken) {
-      existingToken.allocation += Number(allocation.supplyAssets);
-    } else {
-      acc.push({
-        token,
-        allocation: Number(allocation.supplyAssets)
-      });
-    }
-    return acc;
-  }, []).sort((a, b) => b.allocation - a.allocation); // Sort by allocation
+        const token = findToken(market.collateralAsset.address, market.morphoBlue.chain.id);
+        if (!token) return acc;
+
+        // Find existing token entry or create new one
+        const existingToken = acc.find((t) =>
+          token.networks.map((n) => n.address).includes(t.token.networks[0].address),
+        );
+        if (existingToken) {
+          existingToken.allocation += Number(allocation.supplyAssets);
+        } else {
+          acc.push({
+            token,
+            allocation: Number(allocation.supplyAssets),
+          });
+        }
+        return acc;
+      }, [])
+      .sort((a, b) => b.allocation - a.allocation); // Sort by allocation
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 font-zen w-full">
+      <div className="grid w-full grid-cols-1 gap-4 font-zen md:grid-cols-3 md:gap-6">
         {/* Box 1: Vault Info */}
-        <div className="rounded bg-surface p-4 md:p-6 shadow-sm">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between mb-4">
+        <div className="bg-surface rounded p-4 shadow-sm md:p-6">
+          <div className="flex h-full flex-col">
+            <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm text-gray-500">M1 Smart Vault</h3>
                 <Tooltip
@@ -169,31 +180,23 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         </div>
 
         {/* Box 2: Exposure */}
-        <div className="rounded bg-surface p-4 md:p-6 shadow-sm">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between mb-4">
+        <div className="bg-surface rounded p-4 shadow-sm md:p-6">
+          <div className="flex h-full flex-col">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm text-gray-500">Market Exposure</h3>
-              <Button 
-                variant="secondary" 
-                size="sm"
-                onClick={() => setIsAllocationModalOpen(true)}
-              >
+              <Button variant="secondary" size="sm" onClick={() => setIsAllocationModalOpen(true)}>
                 View Details
               </Button>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {tokensWithAllocations?.map(({ token, allocation }) => (
-                <Tooltip 
-                  key={token.address}
-                  content={token.symbol}
-                  placement="bottom"
-                >
+                <Tooltip key={token.address} content={token.symbol} placement="bottom">
                   <div className={`transition-opacity ${allocation === 0 ? 'opacity-50' : ''}`}>
-                    <Image 
-                      src={token.img} 
-                      alt={token.symbol} 
-                      width={16} 
-                      height={16} 
+                    <Image
+                      src={token.img}
+                      alt={token.symbol}
+                      width={16}
+                      height={16}
                       className="rounded-full"
                     />
                   </div>
@@ -204,15 +207,11 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         </div>
 
         {/* Box 3: TVL */}
-        <div className="rounded bg-surface p-4 md:p-6 shadow-sm">
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between mb-4">
+        <div className="bg-surface rounded p-4 shadow-sm md:p-6">
+          <div className="flex h-full flex-col">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm text-gray-500">Total Value Locked</h3>
-              <Button
-                variant="cta"
-                size="sm"
-                onClick={() => setIsDepositModalOpen(true)}
-              >
+              <Button variant="cta" size="sm" onClick={() => setIsDepositModalOpen(true)}>
                 Deposit
               </Button>
             </div>
@@ -227,23 +226,23 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
       </div>
 
       {/* Modal - Updated with refresh */}
-      <Modal 
-        isOpen={isAllocationModalOpen} 
+      <Modal
+        isOpen={isAllocationModalOpen}
         onClose={() => setIsAllocationModalOpen(false)}
         classNames={{
-          base: "bg-surface rounded-lg font-zen",
-          header: "border-b border-divider",
-          body: "p-8",
+          base: 'bg-surface rounded-lg font-zen',
+          header: 'border-b border-divider',
+          body: 'p-8',
         }}
         size="xl"
       >
         <ModalContent>
           <ModalHeader className="p-6">
-            <div className="flex items-center justify-between w-full">
+            <div className="flex w-full items-center justify-between">
               <div className="flex items-center gap-3">
-                <h3 className="text-lg font-medium font-zen">Market Allocations</h3>
+                <h3 className="font-zen text-lg font-medium">Market Allocations</h3>
                 <button
-                  onClick={() => refetch()}
+                  onClick={async () => refetch()}
                   className={`rounded-full p-1 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800
                     ${isRefetching ? 'animate-spin' : ''}`}
                   disabled={isRefetching}
@@ -257,31 +256,32 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
           <ModalBody>
             <AllocationDescription />
             <div className="space-y-2">
-              {markets && vault?.state.allocation
-                .sort((a, b) => Number(b.supplyAssets) - Number(a.supplyAssets))
-                .map((allocation: any) => {
-                  const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
-                  if (!market) return null;
-                  
-                  return (
-                    <MarketAllocationRow
-                      key={allocation.market.uniqueKey}
-                      market={market}
-                      amount={BigInt(allocation.supplyAssets)}
-                      totalAssets={totalAssets}
-                    />
-                  );
-                })}
+              {markets &&
+                vault?.state.allocation
+                  .sort((a, b) => Number(b.supplyAssets) - Number(a.supplyAssets))
+                  .map((allocation: any) => {
+                    const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
+                    if (!market) return null;
+
+                    return (
+                      <MarketAllocationRow
+                        key={allocation.market.uniqueKey}
+                        market={market}
+                        amount={BigInt(allocation.supplyAssets)}
+                        totalAssets={totalAssets}
+                      />
+                    );
+                  })}
             </div>
           </ModalBody>
         </ModalContent>
       </Modal>
 
-      <DepositModal 
+      <DepositModal
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
         vaultAddress={vaultAddress}
       />
     </>
   );
-} 
+}

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Card, CardHeader, CardBody } from '@nextui-org/card';
 import { BiBrain, BiTransfer } from 'react-icons/bi';
 import { TbReportAnalytics } from 'react-icons/tb';
-import { ActivityTypeButton } from './ActivityTypeButton';
 import { ActivitiesSection } from './ActivitiesSection';
+import { ActivityTypeButton } from './ActivityTypeButton';
 
 export const activityTypes = {
   report: {
@@ -36,27 +36,28 @@ export function ActivityCard() {
   const [selectedType, setSelectedType] = useState('all');
 
   return (
-    <Card className="bg-surface h-[600px] p-4 font-zen shadow-md rounded-md">
+    <Card className="bg-surface h-[600px] rounded-md p-4 font-zen shadow-md">
       <CardHeader className="flex items-center justify-between">
         <span className="text-lg">Past Actions</span>
       </CardHeader>
 
       <CardBody className="pt-4">
-        <div className="flex flex-col h-full">
+        <div className="flex h-full flex-col">
           {/* Activity Type Selector */}
-          <div className="flex justify-center gap-2 p-2 border-b border-gray-200 dark:border-gray-800 mb-4">
+          <div className="mb-4 flex justify-center gap-2 border-b border-gray-200 p-2 dark:border-gray-800">
             <button
               onClick={() => setSelectedType('all')}
-              className={`px-2.5 py-1 rounded-lg transition-all text-xs
-                ${selectedType === 'all' 
-                  ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' 
-                  : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900'
+              className={`rounded-lg px-2.5 py-1 text-xs transition-all
+                ${
+                  selectedType === 'all'
+                    ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                    : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900'
                 }`}
             >
               All
             </button>
             {Object.entries(activityTypes).map(([type, config]) => (
-              <ActivityTypeButton 
+              <ActivityTypeButton
                 key={type}
                 type={type}
                 config={config}
@@ -67,7 +68,7 @@ export function ActivityCard() {
           </div>
 
           {/* Activity Feed */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
+          <div className="scrollbar-thin flex-1 overflow-y-auto">
             <div className="pr-2">
               <ActivitiesSection selectedType={selectedType} />
             </div>
@@ -76,4 +77,4 @@ export function ActivityCard() {
       </CardBody>
     </Card>
   );
-} 
+}

@@ -1,7 +1,7 @@
 import { Tooltip } from '@nextui-org/tooltip';
 import { TooltipContent } from '../TooltipContent';
 
-interface ActivityTypeButtonProps {
+type ActivityTypeButtonProps = {
   type: string;
   config: {
     label: string;
@@ -12,13 +12,13 @@ interface ActivityTypeButtonProps {
   };
   isSelected: boolean;
   onClick: () => void;
-}
+};
 
 export function ActivityTypeButton({ type, config, isSelected, onClick }: ActivityTypeButtonProps) {
   const Icon = config.icon;
-  
+
   return (
-    <Tooltip 
+    <Tooltip
       content={
         <TooltipContent
           title={config.label}
@@ -33,16 +33,17 @@ export function ActivityTypeButton({ type, config, isSelected, onClick }: Activi
       <button
         onClick={onClick}
         className={`
-          flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-all text-xs
-          ${isSelected 
-            ? `${config.bgColor} ${config.iconColor}` 
-            : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900'
+          flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs transition-all
+          ${
+            isSelected
+              ? `${config.bgColor} ${config.iconColor}`
+              : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-900'
           }
         `}
       >
-        <Icon className="w-3.5 h-3.5" />
+        <Icon className="h-3.5 w-3.5" />
         <span>{config.label}</span>
       </button>
     </Tooltip>
   );
-} 
+}

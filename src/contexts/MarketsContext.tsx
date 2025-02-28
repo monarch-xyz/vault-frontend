@@ -47,57 +47,52 @@ export function MarketsProvider({ children }: MarketsProviderProps) {
   const [error, setError] = useState<unknown | null>(null);
   const pollingTimerRef = useRef<NodeJS.Timeout>();
 
-  const fetchMarkets = useCallback(
-    async (isRefetch = false) => {
-      try {
-        if (isRefetch) {
-          setIsRefetching(true);
-        } else {
-          setLoading(true);
-        }
-
-        const marketsResponse = await fetch('https://blue-api.morpho.org/graphql', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: marketsQuery,
-            variables: { first: 1000, where: { whitelisted: true } },
-          }),
-        });
-
-        const marketsResult = (await marketsResponse.json()) as MarketResponse;
-        const rawMarkets = marketsResult.data.markets.items;
-
-        const filtered = rawMarkets
-          .filter((market) => market.collateralAsset != undefined)
-          .filter(
-            (market) => market.warnings.find((w) => w.type === 'not_whitelisted') === undefined,
-          )
-          .filter((market) => isSupportedChain(market.morphoBlue.chain.id));
-
-        const processedMarkets = filtered.map((market) => {
-          const warningsWithDetail = getMarketWarningsWithDetail(market);
-
-          return {
-            ...market,
-            warningsWithDetail,
-          };
-        });
-
-        setMarkets(processedMarkets);
-      } catch (_error) {
-        setError(_error);
-        console.error('Error fetching markets:', _error);
-      } finally {
-        if (isRefetch) {
-          setIsRefetching(false);
-        } else {
-          setLoading(false);
-        }
+  const fetchMarkets = useCallback(async (isRefetch = false) => {
+    try {
+      if (isRefetch) {
+        setIsRefetching(true);
+      } else {
+        setLoading(true);
       }
-    },
-    [],
-  );
+
+      const marketsResponse = await fetch('https://blue-api.morpho.org/graphql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: marketsQuery,
+          variables: { first: 1000, where: { whitelisted: true } },
+        }),
+      });
+
+      const marketsResult = (await marketsResponse.json()) as MarketResponse;
+      const rawMarkets = marketsResult.data.markets.items;
+
+      const filtered = rawMarkets
+        .filter((market) => market.collateralAsset != undefined)
+        .filter((market) => market.warnings.find((w) => w.type === 'not_whitelisted') === undefined)
+        .filter((market) => isSupportedChain(market.morphoBlue.chain.id));
+
+      const processedMarkets = filtered.map((market) => {
+        const warningsWithDetail = getMarketWarningsWithDetail(market);
+
+        return {
+          ...market,
+          warningsWithDetail,
+        };
+      });
+
+      setMarkets(processedMarkets);
+    } catch (_error) {
+      setError(_error);
+      console.error('Error fetching markets:', _error);
+    } finally {
+      if (isRefetch) {
+        setIsRefetching(false);
+      } else {
+        setLoading(false);
+      }
+    }
+  }, []);
 
   // Set up polling
   useEffect(() => {

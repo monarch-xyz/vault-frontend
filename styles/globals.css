@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 /* Custom scrollbar styling */
 .custom-scrollbar {
   scrollbar-width: thin;
@@ -86,22 +85,22 @@
   .scrollbar-thin {
     scrollbar-width: thin;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
     border-radius: 100vh;
     background: var(--scrollbar-track, #f3f4f6);
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background: var(--scrollbar-thumb, #d1d5db);
     border-radius: 100vh;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background: var(--scrollbar-thumb-hover, #9ca3af);
   }
@@ -109,16 +108,15 @@
 
 /* Hide scrollbar for IE, Edge and Firefox */
 .hide-scrollbar {
-  -ms-overflow-hidden: none;  /* IE and Edge */
+  -ms-overflow-hidden: none; /* IE and Edge */
   /* Hide scrollbar for IE, Edge */
   -ms-overflow-style: none;
 
-  scrollbar-width: none;  /* Firefox */
+  scrollbar-width: none; /* Firefox */
   overflow: auto;
-  
+
   /* Hide scrollbar for Chrome, Safari, Opera */
   &::-webkit-scrollbar {
     display: none;
   }
-  
-} 
+}

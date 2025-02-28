@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import { useActivities } from '@/hooks/useActivities'
-import moment from 'moment'
-import { Badge } from '@/components/common/Badge'
-import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp, BiChevronRight } from 'react-icons/bi'
-import { TbReportAnalytics } from 'react-icons/tb'
-import { Spinner } from '@/components/common/Spinner'
-import ReactMarkdown from 'react-markdown'
-import { MarkdownText } from '@/components/MarkdownText'
-import { Modal, ModalContent, ModalBody } from '@nextui-org/modal'
-import { format } from 'date-fns'
+import { useState } from 'react';
+import { Modal, ModalContent, ModalBody } from '@nextui-org/modal';
+import { format } from 'date-fns';
+import moment from 'moment';
+import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp, BiChevronRight } from 'react-icons/bi';
+import { TbReportAnalytics } from 'react-icons/tb';
+import ReactMarkdown from 'react-markdown';
+import { Badge } from '@/components/common/Badge';
+import { Spinner } from '@/components/common/Spinner';
+import { MarkdownText } from '@/components/MarkdownText';
+import { useActivities } from '@/hooks/useActivities';
 
 const activityTypes = {
   report: {
@@ -22,8 +22,8 @@ const activityTypes = {
     subTypes: {
       daily: 'Daily Summary',
       market: 'Market Update',
-      hourly: 'Hourly Update'
-    }
+      hourly: 'Hourly Update',
+    },
   },
   think: {
     label: 'Thought',
@@ -35,8 +35,8 @@ const activityTypes = {
     badgeColor: 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300',
     subTypes: {
       analysis: 'Analysis',
-      strategy: 'Strategy'
-    }
+      strategy: 'Strategy',
+    },
   },
   action: {
     label: 'Action',
@@ -47,9 +47,9 @@ const activityTypes = {
     iconColor: 'text-green-600 dark:text-green-400',
     badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
     subTypes: {
-      reallocation: 'Reallocation'
-    }
-  }
+      reallocation: 'Reallocation',
+    },
+  },
 } as const;
 
 type ActivityEntry = {
@@ -61,31 +61,27 @@ type ActivityEntry = {
 };
 
 function ActivityMessage({ entry }: { entry: ActivityEntry }) {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const { type, sub_type, text, timestamp, metadata } = entry
-  const activityType = activityTypes[type as keyof typeof activityTypes]
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { type, sub_type, text, timestamp, metadata } = entry;
+  const activityType = activityTypes[type as keyof typeof activityTypes];
 
-  if (!activityType) return null
+  if (!activityType) return null;
 
   return (
     <>
-      <div 
+      <div
         className={`
-          rounded-lg border p-3 cursor-pointer transition-all
+          cursor-pointer rounded-lg border p-3 transition-all
           ${activityType.bgColor} ${activityType.borderColor}
-          hover:bg-opacity-75 hover:scale-[1.01] group
-          overflow-hidden
+          group overflow-hidden hover:scale-[1.01]
+          hover:bg-opacity-75
         `}
         onClick={() => setIsModalOpen(true)}
       >
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <activityType.icon className={`h-4 w-4 ${activityType.iconColor}`} />
-            <Badge
-              variant="default"
-              size="sm"
-              className={activityType.badgeColor}
-            >
+            <Badge variant="default" size="sm" className={activityType.badgeColor}>
               {activityType.subTypes[sub_type as keyof typeof activityType.subTypes] || sub_type}
             </Badge>
             {metadata?.protocol && (
@@ -96,43 +92,36 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-gray-500">
-              {moment(timestamp).fromNow()}
-            </span>
+            <span className="text-[10px] text-gray-500">{moment(timestamp).fromNow()}</span>
             <BiChevronRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
           </div>
         </div>
         {/* Preview text without markdown */}
-        <div className="text-sm line-clamp-2 overflow-hidden">
-          {text}
-        </div>
+        <div className="line-clamp-2 overflow-hidden text-sm">{text}</div>
       </div>
 
       {/* Detail Modal - Updated styling */}
-      <Modal 
-        isOpen={isModalOpen} 
+      <Modal
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         classNames={{
-          base: "bg-surface rounded-lg font-zen border shadow-lg",  // Solid background
-          body: "p-0",  // Remove default padding
-          backdrop: "bg-black/50",  // Darker backdrop
+          base: 'bg-surface rounded-lg font-zen border shadow-lg', // Solid background
+          body: 'p-0', // Remove default padding
+          backdrop: 'bg-black/50', // Darker backdrop
         }}
         size="2xl"
       >
         <ModalContent>
           <ModalBody>
-            <div className="max-h-[80vh] overflow-y-auto hide-scrollbar">
+            <div className="hide-scrollbar max-h-[80vh] overflow-y-auto">
               <div className="p-8">
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <activityType.icon className={`h-4 w-4 ${activityType.iconColor}`} />
-                    <Badge
-                      variant="default"
-                      size="sm"
-                      className={activityType.badgeColor}
-                    >
-                      {activityType.subTypes[sub_type as keyof typeof activityType.subTypes] || sub_type}
+                    <Badge variant="default" size="sm" className={activityType.badgeColor}>
+                      {activityType.subTypes[sub_type as keyof typeof activityType.subTypes] ||
+                        sub_type}
                     </Badge>
                     {metadata?.protocol && (
                       <span className="text-xs text-gray-500">
@@ -167,14 +156,14 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
 }
 
 export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: string }) {
-  const { activities, isLoading, error } = useActivities()
-  
+  const { activities, isLoading, error } = useActivities();
+
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <Spinner size={24} />
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -183,56 +172,57 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
         <p>Failed to load activities</p>
         <p className="text-sm">{error}</p>
       </div>
-    )
+    );
   }
 
   // Combine and format entries
   const allEntries = [
-    ...activities.map(memory => ({
+    ...activities.map((memory) => ({
       text: memory.text,
       type: memory.type,
       sub_type: memory.sub_type || '',
       timestamp: memory.created_at,
-      metadata: {}
+      metadata: {},
     })),
   ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   // Filter entries based on selectedType
-  const filteredEntries = selectedType === 'all'
-    ? allEntries
-    : allEntries.filter(entry => entry.type.toLowerCase() === selectedType);
+  const filteredEntries =
+    selectedType === 'all'
+      ? allEntries
+      : allEntries.filter((entry) => entry.type.toLowerCase() === selectedType);
 
   // Get the appropriate icon for empty state
-  const EmptyIcon = selectedType === 'all' 
-    ? BiBrain 
-    : activityTypes[selectedType as keyof typeof activityTypes]?.icon;
+  const EmptyIcon =
+    selectedType === 'all'
+      ? BiBrain
+      : activityTypes[selectedType as keyof typeof activityTypes]?.icon;
 
-  const emptyIconColor = selectedType === 'all'
-    ? 'text-gray-400'
-    : activityTypes[selectedType as keyof typeof activityTypes]?.iconColor;
+  const emptyIconColor =
+    selectedType === 'all'
+      ? 'text-gray-400'
+      : activityTypes[selectedType as keyof typeof activityTypes]?.iconColor;
 
   return (
-    <div className="h-full overflow-y-auto hide-scrollbar">
+    <div className="hide-scrollbar h-full overflow-y-auto">
       {filteredEntries.length === 0 ? (
-        <div className="flex h-full flex-col items-center justify-center space-y-2 text-center py-8">
+        <div className="flex h-full flex-col items-center justify-center space-y-2 py-8 text-center">
           <EmptyIcon className={`h-8 w-8 ${emptyIconColor} opacity-40`} />
           <div className="text-sm text-gray-500">
-            {selectedType === 'all' 
+            {selectedType === 'all'
               ? 'No activities yet...'
-              : `No ${activityTypes[selectedType as keyof typeof activityTypes]?.label.toLowerCase()} activities yet...`
-            }
+              : `No ${activityTypes[
+                  selectedType as keyof typeof activityTypes
+                ]?.label.toLowerCase()} activities yet...`}
           </div>
         </div>
       ) : (
         <div className="space-y-2">
           {filteredEntries.map((entry, index) => (
-            <ActivityMessage 
-              key={entry.timestamp + index}
-              entry={entry}
-            />
+            <ActivityMessage key={entry.timestamp + index} entry={entry} />
           ))}
         </div>
       )}
     </div>
-  )
-} 
+  );
+}
