@@ -23,7 +23,6 @@ export function useWrapLegacyMorpho(amount: bigint, onSuccess?: () => void) {
     spender: MORPHO_TOKEN_WRAPPER as Address,
     amount,
     tokenSymbol: 'MORPHO',
-    chainId: SupportedNetworks.Mainnet,
   });
 
   const { sendTransactionAsync } = useTransactionWithToast({
