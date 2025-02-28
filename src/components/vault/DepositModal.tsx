@@ -7,9 +7,10 @@ import { BiBrain } from 'react-icons/bi';
 import { Button } from '@/components/common/Button';
 import Input from '@/components/Input/Input';
 import { useDepositVault } from '@/hooks/useDepositVault';
-import { useUserBalances } from '@/hooks/useUserBalances';
 import { formatBalance } from '@/utils/balance';
 import { AGENT_NAME } from '@/utils/constants';
+import { useAccount, useBalance } from 'wagmi';
+import { SupportedNetworks } from '@/utils/networks';
 
 const USDC = {
   symbol: 'USDC',
@@ -25,10 +26,12 @@ type DepositModalProps = {
 };
 
 export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProps) {
-  const { balances } = useUserBalances();
-  const usdcBalance = BigInt(
-    balances.find((b) => b.address.toLowerCase() === USDC.address.toLowerCase())?.balance || 0n,
-  );
+  const { address } = useAccount();
+  const { data: usdcBalance } = useBalance({
+    address: address,
+    token: USDC.address as `0x${string}`,
+    chainId: SupportedNetworks.Base,
+  });
 
   const [depositAmount, setDepositAmount] = useState<bigint>(0n);
   const [message, setMessage] = useState<string>('');
@@ -82,14 +85,14 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
               <label className="text-sm text-gray-500">Amount to Deposit</label>
               <Input
                 decimals={USDC.decimals}
-                max={usdcBalance || 0n}
+                max={usdcBalance?.value || 0n}
                 setValue={setDepositAmount}
                 setError={setInputError}
                 exceedMaxErrMessage="Insufficient Balance"
               />
               <div className="flex justify-end">
                 <span className="text-xs text-gray-500">
-                  Available: {formatBalance(usdcBalance, USDC.decimals)} {USDC.symbol}
+                  Available: {formatBalance(usdcBalance?.value || 0n, USDC.decimals)} {USDC.symbol}
                 </span>
               </div>
               {inputError && <p className="text-xs text-red-500">{inputError}</p>}
