@@ -204,7 +204,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                         <TooltipContent
                           icon={<Image src={MorphoLogo} alt="Morpho" width={16} height={16} />}
                           title={`Total Daily APY with Rewards`}
-                          detail={`Daily rate -- ${(vault.state.dailyNetApy * 100).toFixed(2)}% including Morpho token rewards on top of base lending APY`}
+                          detail={`Daily rate: ${(vault.state.dailyNetApy * 100).toFixed(2)}% including Morpho token rewards on top of base lending APY`}
                         />
                       }
                     >
