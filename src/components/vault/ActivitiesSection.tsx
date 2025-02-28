@@ -2,17 +2,32 @@ import { useState } from 'react';
 import { Modal, ModalContent, ModalBody } from '@nextui-org/modal';
 import { format } from 'date-fns';
 import moment from 'moment';
-import { BiBrain, BiTransfer, BiChevronDown, BiChevronUp, BiChevronRight } from 'react-icons/bi';
+import { BiBrain, BiTransfer, BiChevronRight } from 'react-icons/bi';
 import { TbReportAnalytics } from 'react-icons/tb';
-import ReactMarkdown from 'react-markdown';
 import { Badge } from '@/components/common/Badge';
 import { Spinner } from '@/components/common/Spinner';
 import { MarkdownText } from '@/components/MarkdownText';
 import { useActivities } from '@/hooks/useActivities';
+import { useVaultReallocations } from '@/hooks/useVaultReallocations';
+import { ReallocationActivity } from '@/components/vault/ReallocationActivity';
 
 const activityTypes = {
+  action: {
+    label: 'Action',
+    order: 1,
+    description: 'On-chain reallocation transactions',
+    icon: BiTransfer,
+    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
+    borderColor: 'border-green-100 dark:border-green-900',
+    iconColor: 'text-green-600 dark:text-green-400',
+    badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
+    subTypes: {
+      reallocation: 'Reallocation',
+    },
+  },
   report: {
     label: 'Report',
+    order: 2,
     description: 'Periodic summaries and market updates',
     icon: TbReportAnalytics,
     bgColor: 'bg-blue-50/50 dark:bg-blue-950/30',
@@ -27,6 +42,7 @@ const activityTypes = {
   },
   think: {
     label: 'Thought',
+    order: 3,
     description: 'Agent reasoning and analysis process',
     icon: BiBrain,
     bgColor: 'bg-purple-50/50 dark:bg-purple-950/30',
@@ -36,18 +52,6 @@ const activityTypes = {
     subTypes: {
       analysis: 'Analysis',
       strategy: 'Strategy',
-    },
-  },
-  action: {
-    label: 'Action',
-    description: 'On-chain reallocation transactions',
-    icon: BiTransfer,
-    bgColor: 'bg-green-50/50 dark:bg-green-950/30',
-    borderColor: 'border-green-100 dark:border-green-900',
-    iconColor: 'text-green-600 dark:text-green-400',
-    badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300',
-    subTypes: {
-      reallocation: 'Reallocation',
     },
   },
 } as const;
@@ -156,7 +160,11 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
 }
 
 export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: string }) {
-  const { activities, isLoading, error } = useActivities();
+  const { activities, isLoading: activitiesLoading, error: activitiesError } = useActivities();
+  const { reallocations, isLoading: reallocationsLoading, error: reallocationsError } = useVaultReallocations();
+
+  const isLoading = activitiesLoading || reallocationsLoading;
+  const error = activitiesError || reallocationsError;
 
   if (isLoading) {
     return (
@@ -175,22 +183,46 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
     );
   }
 
-  // Combine and format entries
-  const allEntries = [
-    ...activities.map((memory) => ({
-      text: memory.text,
-      type: memory.type,
-      sub_type: memory.sub_type || '',
-      timestamp: memory.created_at,
-      metadata: {},
-    })),
-  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  // Format regular activities
+  const regularEntries = activities.map((memory) => ({
+    text: memory.text,
+    type: memory.type,
+    sub_type: memory.sub_type || '',
+    timestamp: memory.created_at,
+    metadata: {},
+  }));
+
+  // Combine regular activities and reallocation activities based on selectedType
+  let allEntries = [];
+  
+  if (selectedType === 'all' || selectedType === 'action') {
+    // Include reallocations when showing 'all' or 'action' types
+    allEntries = [
+      ...regularEntries,
+      ...reallocations.map(reallocation => ({
+        type: 'reallocation',
+        reallocation,
+        timestamp: new Date(reallocation.timestamp * 1000).toISOString(),
+      })),
+    ];
+  } else {
+    // Only include regular activities for other types
+    allEntries = regularEntries;
+  }
+  
+  // Sort all entries by timestamp
+  allEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
   // Filter entries based on selectedType
   const filteredEntries =
     selectedType === 'all'
       ? allEntries
-      : allEntries.filter((entry) => entry.type.toLowerCase() === selectedType);
+      : allEntries.filter(entry => {
+          if ('reallocation' in entry) {
+            return selectedType === 'action';
+          }
+          return entry.type.toLowerCase() === selectedType;
+        });
 
   // Get the appropriate icon for empty state
   const EmptyIcon =
@@ -218,9 +250,15 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
         </div>
       ) : (
         <div className="space-y-2">
-          {filteredEntries.map((entry, index) => (
-            <ActivityMessage key={entry.timestamp + index} entry={entry} />
-          ))}
+          {filteredEntries.map((entry, index) => {
+            // Render reallocation activity
+            if ('reallocation' in entry) {
+              return <ReallocationActivity key={`reallocation-${index}`} reallocation={entry.reallocation} />;
+            }
+            
+            // Render standard activity
+            return <ActivityMessage key={`activity-${entry.timestamp}-${index}`} entry={entry as ActivityEntry} />;
+          })}
         </div>
       )}
     </div>
