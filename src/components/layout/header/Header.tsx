@@ -65,7 +65,7 @@ function Header({ ghost }: HeaderProps) {
           <div className="container mx-auto">
             <nav className="bg-surface flex h-[72px] w-full items-center justify-between rounded-md px-4">
               <div className="flex h-8 items-center justify-start gap-4 font-zen text-lg dark:text-gray-200">
-                🔶 Monarch Vault
+                Monarch Vault
               </div>
               <div className="flex items-center gap-4">
                 <Dropdown onOpenChange={setIsMoreOpen} className="rounded-sm">
