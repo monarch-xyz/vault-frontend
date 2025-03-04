@@ -20,7 +20,6 @@ const USDC = {
   address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
 
-
 type DepositModalProps = {
   isOpen: boolean;
   onClose: () => void;
@@ -30,7 +29,7 @@ type DepositModalProps = {
 export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProps) {
   const { address, chainId } = useAccount();
   const { switchChainAsync } = useSwitchChain();
-  
+
   const { data: usdcBalance } = useBalance({
     address: address,
     token: USDC.address as `0x${string}`,
@@ -56,7 +55,7 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
   };
 
   const handleSwitchNetwork = async () => {
-    await switchChainAsync({chainId: SupportedNetworks.Base});
+    await switchChainAsync({ chainId: SupportedNetworks.Base });
   };
 
   return (
@@ -86,9 +85,7 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
                 Your funds will be managed by M1, an AI agent that optimizes yield across Morpho
                 markets.
               </p>
-              <div className="mt-6 text-xs text-gray-500">
-                💡 Deposit $10+ to interact with M1.
-              </div>
+              <div className="mt-6 text-xs text-gray-500">💡 Deposit $10+ to interact with M1.</div>
             </div>
 
             <div className="space-y-2">
@@ -100,14 +97,12 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
                 setError={setInputError}
                 exceedMaxErrMessage="Insufficient Balance on Base"
               />
-              <div className="flex justify-end items-center gap-1">
+              <div className="flex items-center justify-end gap-1">
                 <span className="text-xs text-gray-500">
                   Available: {formatBalance(usdcBalance?.value || 0n, USDC.decimals)} {USDC.symbol}
                 </span>
                 {(!usdcBalance?.value || usdcBalance.value === 0n) && (
-                  <span className="text-xs text-gray-500 flex items-center gap-1">
-                    on Base
-                  </span>
+                  <span className="flex items-center gap-1 text-xs text-gray-500">on Base</span>
                 )}
               </div>
               {inputError && <p className="text-xs text-red-500">{inputError}</p>}
@@ -140,7 +135,7 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
               ) : (
                 <Button
                   variant="interactive"
-                  className="flex-1 flex items-center justify-center gap-2"
+                  className="flex flex-1 items-center justify-center gap-2"
                   onClick={handleSwitchNetwork}
                 >
                   <span>Switch to Base</span>

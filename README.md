@@ -7,4 +7,3 @@
 ## Overview
 
 M1 Agent is an agent that manage Morpho Vault. This frontend is an interface designed for better transparency of how M1 Agent is managing your vault.
-

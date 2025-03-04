@@ -41,27 +41,26 @@ interface ReallocationActivityProps {
 }
 
 export function ReallocationActivity({ reallocation }: ReallocationActivityProps) {
-
   const { markets } = useMarkets();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // Format the timestamp as string for compatibility with other activities
   const timestamp = new Date(reallocation.timestamp * 1000).toISOString();
-  
+
   // Get withdraw and supply actions
-  const withdrawActions = reallocation.actions.filter(a => a.type === 'ReallocateWithdraw');
-  const supplyActions = reallocation.actions.filter(a => a.type === 'ReallocateSupply');
-  
+  const withdrawActions = reallocation.actions.filter((a) => a.type === 'ReallocateWithdraw');
+  const supplyActions = reallocation.actions.filter((a) => a.type === 'ReallocateSupply');
+
   // Calculate total amount (should be the same for withdrawals and supplies)
   const totalAmount = withdrawActions.reduce((sum, action) => sum + action.assets, 0);
-  
+
   // Format the amount as USDC with proper decimal places
   const formattedAmount = formatUnits(BigInt(totalAmount), 6);
-  
+
   // Create a summary of the markets involved
-  const fromMarkets = withdrawActions.map(a => a.marketId);
-  const toMarkets = supplyActions.map(a => a.marketId);
+  const fromMarkets = withdrawActions.map((a) => a.marketId);
+  const toMarkets = supplyActions.map((a) => a.marketId);
 
   return (
     <>
@@ -69,8 +68,8 @@ export function ReallocationActivity({ reallocation }: ReallocationActivityProps
         className={`
           cursor-pointer rounded-lg border p-3 transition-all
           ${activityType.bgColor} ${activityType.borderColor}
-          group overflow-hidden hover:scale-[1.01]
-          hover:bg-opacity-75 font-zen
+          group overflow-hidden font-zen
+          hover:scale-[1.01] hover:bg-opacity-75
         `}
         onClick={() => setIsModalOpen(true)}
       >
@@ -87,29 +86,29 @@ export function ReallocationActivity({ reallocation }: ReallocationActivityProps
           </div>
         </div>
         <div className="line-clamp-2 overflow-hidden text-sm">
-          Reallocate {formattedAmount} USDC from {' '}
+          Reallocate {formattedAmount} USDC from{' '}
           <span className="inline-flex flex-wrap gap-1">
             {fromMarkets.map((m, i) => (
-              <MarketSpan 
-                key={`preview-from-${i}`} 
-                marketId={m} 
-                market={markets.find(market => market.uniqueKey === m)}
+              <MarketSpan
+                key={`preview-from-${i}`}
+                marketId={m}
+                market={markets.find((market) => market.uniqueKey === m)}
                 className="text-xs"
               />
             ))}
-          </span>
-          {' '}market{fromMarkets.length !== 1 ? 's' : ''} to {' '}
+          </span>{' '}
+          market{fromMarkets.length !== 1 ? 's' : ''} to{' '}
           <span className="inline-flex flex-wrap gap-1">
             {toMarkets.map((m, i) => (
-              <MarketSpan 
-                key={`preview-to-${i}`} 
+              <MarketSpan
+                key={`preview-to-${i}`}
                 marketId={m}
-                market={markets.find(market => market.uniqueKey === m)}
+                market={markets.find((market) => market.uniqueKey === m)}
                 className="text-xs"
               />
             ))}
-          </span>
-          {' '}market{toMarkets.length !== 1 ? 's' : ''}
+          </span>{' '}
+          market{toMarkets.length !== 1 ? 's' : ''}
         </div>
       </div>
 
@@ -143,16 +142,19 @@ export function ReallocationActivity({ reallocation }: ReallocationActivityProps
                 {/* Content with reallocation details */}
                 <div className={`text-sm ${activityType.bgColor} rounded-lg p-4 font-zen`}>
                   <h4 className="mb-3">Reallocation: {formattedAmount} USDC</h4>
-                  
+
                   {/* From markets section */}
                   <div className="mb-4">
                     <h5 className="mb-2 text-xs uppercase text-gray-500">From Markets</h5>
                     <div className="space-y-2">
                       {withdrawActions.map((action, i) => (
-                        <div key={`from-${i}`} className="flex items-center justify-between rounded bg-red-50/30 p-2 dark:bg-red-950/20">
-                          <MarketSpan 
+                        <div
+                          key={`from-${i}`}
+                          className="flex items-center justify-between rounded bg-red-50/30 p-2 dark:bg-red-950/20"
+                        >
+                          <MarketSpan
                             marketId={action.marketId}
-                            market={markets.find(market => market.uniqueKey === action.marketId)}
+                            market={markets.find((market) => market.uniqueKey === action.marketId)}
                           />
                           <span className="font-medium text-red-600 dark:text-red-400">
                             -{formatUnits(BigInt(action.assets), 6)} USDC
@@ -161,16 +163,19 @@ export function ReallocationActivity({ reallocation }: ReallocationActivityProps
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* To markets section */}
                   <div>
                     <h5 className="mb-2 text-xs uppercase text-gray-500">To Markets</h5>
                     <div className="space-y-2">
                       {supplyActions.map((action, i) => (
-                        <div key={`to-${i}`} className="flex items-center justify-between rounded bg-green-50/30 p-2 dark:bg-green-950/20">
-                          <MarketSpan 
+                        <div
+                          key={`to-${i}`}
+                          className="flex items-center justify-between rounded bg-green-50/30 p-2 dark:bg-green-950/20"
+                        >
+                          <MarketSpan
                             marketId={action.marketId}
-                            market={markets.find(market => market.uniqueKey === action.marketId)}
+                            market={markets.find((market) => market.uniqueKey === action.marketId)}
                           />
                           <span className="font-medium text-green-600 dark:text-green-400">
                             +{formatUnits(BigInt(action.assets), 6)} USDC
@@ -183,12 +188,14 @@ export function ReallocationActivity({ reallocation }: ReallocationActivityProps
 
                 {/* Transaction hash - moved to bottom right */}
                 <div className="mt-4 flex justify-end">
-                  <Link 
-                    href={getExplorerTxURL(reallocation.hash, SupportedNetworks.Base)} 
+                  <Link
+                    href={getExplorerTxURL(reallocation.hash, SupportedNetworks.Base)}
                     target="_blank"
-                    className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors no-underline hover:underline"
+                    className="flex items-center gap-1 text-xs text-gray-500 no-underline transition-colors hover:text-gray-700 hover:underline dark:hover:text-gray-300"
                   >
-                    <span>TX: {reallocation.hash.slice(0, 6)}...{reallocation.hash.slice(-4)}</span>
+                    <span>
+                      TX: {reallocation.hash.slice(0, 6)}...{reallocation.hash.slice(-4)}
+                    </span>
                     <BiLinkExternal className="h-3 w-3" />
                   </Link>
                 </div>
@@ -199,4 +206,4 @@ export function ReallocationActivity({ reallocation }: ReallocationActivityProps
       </Modal>
     </>
   );
-} 
+}

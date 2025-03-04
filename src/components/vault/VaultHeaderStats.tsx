@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalContent, ModalHeader, ModalBody } from '@nextui-org/modal';
 import { Tooltip } from '@nextui-org/tooltip';
 import { BsQuestionCircle } from 'react-icons/bs';
@@ -11,9 +11,13 @@ import { useMarkets } from '@/contexts/MarketsContext';
 import { useVault } from '@/hooks/useVault';
 import { formatBalance, formatReadable } from '@/utils/balance';
 import { AGENT_NAME } from '@/utils/constants';
+import { VaultIntroShownKey } from '@/utils/storageKeys';
+import { useTheme } from 'next-themes';
 import { findToken } from '@/utils/tokens';
 import { Market } from '@/utils/types';
 import { DepositModal } from './DepositModal';
+import MorphoDarkLogo from '@/imgs/morpho/powered-by-morpho-dark.svg';
+import MorphoLightLogo from '@/imgs/morpho/powered-by-morpho-light.svg';
 
 const USDC = {
   symbol: 'USDC',
@@ -23,6 +27,9 @@ const USDC = {
 };
 
 const MorphoLogo = require('../../../src/imgs/tokens/morpho.svg') as string;
+
+// Either add this or use an existing one from your project
+const BaseLogo = require('../../../src/imgs/chains/base.webp') as string; // You may need to add this file to your project
 
 function AllocationDescription() {
   return (
@@ -105,10 +112,11 @@ function MarketAllocationRow({
 
 // Add this style to your component to prevent layout shift
 const preventLayoutShift = {
-  paddingRight: 'var(--removed-body-scroll-bar-size, 0px)'
+  paddingRight: 'var(--removed-body-scroll-bar-size, 0px)',
 };
 
 export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
+  const { theme } = useTheme();
   const { markets } = useMarkets();
   const { data: vault, refetch, isRefetching } = useVault();
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
@@ -116,6 +124,20 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
   const totalAssets = vault ? BigInt(vault.state.totalAssets) : BigInt(0);
+
+  // Check if user has seen the intro before
+  useEffect(() => {
+    const hasSeenIntro = localStorage.getItem(VaultIntroShownKey) === 'true';
+    if (!hasSeenIntro) {
+      setIsInfoModalOpen(true);
+    }
+  }, []);
+
+  // Handle closing the intro modal
+  const handleCloseInfoModal = () => {
+    setIsInfoModalOpen(false);
+    localStorage.setItem(VaultIntroShownKey, 'true');
+  };
 
   // Get tokens with allocations
   const tokensWithAllocations =
@@ -146,7 +168,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
 
   return (
     <>
-      <div 
+      <div
         className="grid w-full grid-cols-1 gap-4 font-zen md:grid-cols-3 md:gap-6"
         style={preventLayoutShift}
       >
@@ -156,7 +178,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm text-gray-500">M1 Smart Vault</h3>
-                <button 
+                <button
                   onClick={() => setIsInfoModalOpen(true)}
                   className="cursor-pointer transition-colors hover:text-primary"
                 >
@@ -178,13 +200,23 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                         <TooltipContent
                           icon={<Image src={MorphoLogo} alt="Morpho" width={16} height={16} />}
                           title={`Total APY with Rewards`}
-                          detail={`${(vault.state.netApy * 100).toFixed(2)}% including Morpho token rewards on top of base lending APY`}
+                          detail={`${(vault.state.netApy * 100).toFixed(
+                            2,
+                          )}% including Morpho token rewards on top of base lending APY`}
                         />
                       }
                     >
                       <div className="flex items-center text-primary">
-                        <span className="text-xs">(+{Math.max(0, ((vault.state.netApy - vault.state.apy) * 100)).toFixed(2)}%</span>
-                        <Image src={MorphoLogo} alt="Morpho" width={16} height={16} className="ml-0.5" />
+                        <span className="text-xs">
+                          (+{Math.max(0, (vault.state.netApy - vault.state.apy) * 100).toFixed(2)}%
+                        </span>
+                        <Image
+                          src={MorphoLogo}
+                          alt="Morpho"
+                          width={16}
+                          height={16}
+                          className="ml-0.5"
+                        />
                         <span className="text-xs">)</span>
                       </div>
                     </Tooltip>
@@ -204,13 +236,28 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                         <TooltipContent
                           icon={<Image src={MorphoLogo} alt="Morpho" width={16} height={16} />}
                           title={`Total Daily APY with Rewards`}
-                          detail={`Daily rate: ${(vault.state.dailyNetApy * 100).toFixed(2)}% including Morpho token rewards on top of base lending APY`}
+                          detail={`Daily rate: ${(vault.state.dailyNetApy * 100).toFixed(
+                            2,
+                          )}% including Morpho token rewards on top of base lending APY`}
                         />
                       }
                     >
                       <div className="flex items-center text-primary">
-                        <span className="text-xs">(+{Math.max(0, ((vault.state.dailyNetApy - vault.state.dailyApy) * 100)).toFixed(2)}%</span>
-                        <Image src={MorphoLogo} alt="Morpho" width={16} height={16} className="ml-0.5" />
+                        <span className="text-xs">
+                          (+
+                          {Math.max(
+                            0,
+                            (vault.state.dailyNetApy - vault.state.dailyApy) * 100,
+                          ).toFixed(2)}
+                          %
+                        </span>
+                        <Image
+                          src={MorphoLogo}
+                          alt="Morpho"
+                          width={16}
+                          height={16}
+                          className="ml-0.5"
+                        />
                         <span className="text-xs">)</span>
                       </div>
                     </Tooltip>
@@ -248,7 +295,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
           </div>
         </div>
 
-        {/* Box 3: TVL */}
+        {/* Box 3: TVL with Base Chain Logo */}
         <div className="bg-surface rounded p-4 shadow-sm md:p-6">
           <div className="flex h-full flex-col">
             <div className="mb-4 flex items-center justify-between">
@@ -257,11 +304,27 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                 Deposit
               </Button>
             </div>
-            <div className="flex items-center gap-2">
-              <Image src={USDC.img} alt={USDC.symbol} width={20} height={20} />
-              <span className="text-base md:text-lg">
-                {formatReadable(formatBalance(totalAssets, 6))} USDC
-              </span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Image src={USDC.img} alt={USDC.symbol} width={20} height={20} />
+                <span className="text-base md:text-lg">
+                  {formatReadable(formatBalance(totalAssets, 6))} USDC
+                </span>
+              </div>
+              <div className="flex items-center">
+                <Tooltip content="Deployed on Base Chain">
+                  <div className="flex items-center text-xs text-gray-500">
+                    <span className="mr-1.5"> on</span>
+                    <Image
+                      src={BaseLogo}
+                      alt="Base Chain"
+                      width={18}
+                      height={18}
+                      className="rounded-full"
+                    />
+                  </div>
+                </Tooltip>
+              </div>
             </div>
           </div>
         </div>
@@ -275,7 +338,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
           base: 'bg-surface rounded-lg font-zen',
           header: 'border-b border-divider',
           body: 'p-8',
-          backdrop: 'backdrop-blur-sm'
+          backdrop: 'backdrop-blur-sm',
         }}
         scrollBehavior="outside"
         size="xl"
@@ -321,15 +384,15 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         </ModalContent>
       </Modal>
 
-      {/* M1 Info Modal with improved configuration */}
+      {/* M1 Info Modal with improved configuration and Morpho logo */}
       <Modal
         isOpen={isInfoModalOpen}
-        onClose={() => setIsInfoModalOpen(false)}
+        onClose={handleCloseInfoModal}
         classNames={{
           base: 'bg-surface rounded-lg font-zen',
           header: 'border-b border-divider',
           body: 'p-8',
-          backdrop: 'backdrop-blur-sm'
+          backdrop: 'backdrop-blur-sm',
         }}
         scrollBehavior="outside"
         size="lg"
@@ -344,31 +407,66 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
           </ModalHeader>
           <ModalBody>
             <div className="mb-6 rounded-lg bg-primary/5 p-4">
-              <div className="mb-2 flex items-center gap-2 text-primary">
-                <RiRobot2Fill className="h-4 w-4" />
-                <span className="text-sm font-medium">{AGENT_NAME} - AI Allocator</span>
+              <div className="mb-4 flex items-center gap-2">
+                <RiRobot2Fill className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium text-primary">
+                  {AGENT_NAME} - AI Allocator
+                </span>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Monarch Vault is an AI-powered Morpho vault where the M1 agent manages funds by reallocating assets across a pre-approved set of markets to optimize returns.
+
+              <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                Monarch Vault is an AI-powered Morpho vault where the M1 agent manages funds by
+                reallocating assets across a pre-approved set of markets to optimize returns.
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                The agent can only move assets between approved markets and cannot withdraw funds from the vault. This creates essential safety boundaries.
+              <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+                The agent can only move assets between approved markets and cannot withdraw funds
+                from the vault. This creates essential safety boundaries.
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                This interface provides full transparency into how the agent operates - you can view all market reallocations and live performance metrics.
+                This interface provides full transparency into how the agent operates - you can view
+                all market reallocations and live performance metrics.
               </p>
             </div>
-            
+
+            {/* Add the centered Morpho logo */}
+            <div className="mb-6 flex justify-center">
+              <Image
+                src={theme === 'light' ? MorphoLightLogo : MorphoDarkLogo}
+                alt="Powered by Morpho"
+                height={30}
+                width={150}
+                className="object-contain"
+              />
+            </div>
+
             <div className="flex justify-end">
-              <Button 
-                variant="secondary" 
+              <Button
+                variant="secondary"
                 size="sm"
-                onClick={() => window.open(`https://app.morpho.org/base/vault/${vaultAddress}/monarch-m1/`, '_blank')}
+                onClick={() =>
+                  window.open(
+                    `https://app.morpho.org/base/vault/${vaultAddress}/monarch-m1/`,
+                    '_blank',
+                  )
+                }
                 className="flex items-center gap-1"
               >
                 View on Morpho
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
-                  <path d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="ml-1"
+                >
+                  <path
+                    d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
                 </svg>
               </Button>
             </div>

@@ -9,3 +9,4 @@ export const MarketsShowUnknownOracleKey = 'monarch_marketsShowUnknownOracle';
 
 export const ThemeKey = 'theme';
 export const ShowBGImage = 'monarch_show_bg_image';
+export const VaultIntroShownKey = 'monarch_vault_intro_shown';

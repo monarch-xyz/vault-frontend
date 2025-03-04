@@ -59,7 +59,7 @@ export function useERC20Approval({
     });
 
     // make sure it's confirmed on-chain
-    await publicClient.waitForTransactionReceipt({hash: tx });
+    await publicClient.waitForTransactionReceipt({ hash: tx });
   }, [account, amount, sendTransactionAsync, token, spender, refetchAllowance]);
 
   return {

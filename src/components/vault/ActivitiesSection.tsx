@@ -161,7 +161,11 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
 
 export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: string }) {
   const { activities, isLoading: activitiesLoading, error: activitiesError } = useActivities();
-  const { reallocations, isLoading: reallocationsLoading, error: reallocationsError } = useVaultReallocations();
+  const {
+    reallocations,
+    isLoading: reallocationsLoading,
+    error: reallocationsError,
+  } = useVaultReallocations();
 
   const isLoading = activitiesLoading || reallocationsLoading;
   const error = activitiesError || reallocationsError;
@@ -194,12 +198,12 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
 
   // Combine regular activities and reallocation activities based on selectedType
   let allEntries = [];
-  
+
   if (selectedType === 'all' || selectedType === 'action') {
     // Include reallocations when showing 'all' or 'action' types
     allEntries = [
       ...regularEntries,
-      ...reallocations.map(reallocation => ({
+      ...reallocations.map((reallocation) => ({
         type: 'reallocation',
         reallocation,
         timestamp: new Date(reallocation.timestamp * 1000).toISOString(),
@@ -209,7 +213,7 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
     // Only include regular activities for other types
     allEntries = regularEntries;
   }
-  
+
   // Sort all entries by timestamp
   allEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -217,7 +221,7 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
   const filteredEntries =
     selectedType === 'all'
       ? allEntries
-      : allEntries.filter(entry => {
+      : allEntries.filter((entry) => {
           if ('reallocation' in entry) {
             return selectedType === 'action';
           }
@@ -253,11 +257,21 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
           {filteredEntries.map((entry, index) => {
             // Render reallocation activity
             if ('reallocation' in entry) {
-              return <ReallocationActivity key={`reallocation-${index}`} reallocation={entry.reallocation} />;
+              return (
+                <ReallocationActivity
+                  key={`reallocation-${index}`}
+                  reallocation={entry.reallocation}
+                />
+              );
             }
-            
+
             // Render standard activity
-            return <ActivityMessage key={`activity-${entry.timestamp}-${index}`} entry={entry as ActivityEntry} />;
+            return (
+              <ActivityMessage
+                key={`activity-${entry.timestamp}-${index}`}
+                entry={entry as ActivityEntry}
+              />
+            );
           })}
         </div>
       )}

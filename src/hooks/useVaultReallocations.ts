@@ -89,35 +89,37 @@ export function useVaultReallocations() {
       const response = await graphqlFetcher(reallocationsQuery, {
         vaultId: vaultAddress,
       });
-      
+
       const items = response.data.vaultReallocates.items;
-      
+
       // Group by hash as each hash represents one logical reallocation
       const hashGroups: Record<string, ReallocateItem[]> = {};
-      
-      items.forEach(item => {
+
+      items.forEach((item) => {
         if (!hashGroups[item.hash]) {
           hashGroups[item.hash] = [];
         }
         hashGroups[item.hash].push(item);
       });
-      
+
       // Convert groups to our desired format
-      return Object.entries(hashGroups).map(([hash, items]) => {
-        // All items in a group have the same timestamp and caller
-        const { timestamp, caller } = items[0];
-        
-        return {
-          hash,
-          timestamp,
-          caller,
-          actions: items.map(item => ({
-            marketId: item.market.uniqueKey,
-            assets: item.assets,
-            type: item.type,
-          })),
-        };
-      }).sort((a, b) => b.timestamp - a.timestamp); // Sort by timestamp descending
+      return Object.entries(hashGroups)
+        .map(([hash, items]) => {
+          // All items in a group have the same timestamp and caller
+          const { timestamp, caller } = items[0];
+
+          return {
+            hash,
+            timestamp,
+            caller,
+            actions: items.map((item) => ({
+              marketId: item.market.uniqueKey,
+              assets: item.assets,
+              type: item.type,
+            })),
+          };
+        })
+        .sort((a, b) => b.timestamp - a.timestamp); // Sort by timestamp descending
     },
     refetchInterval: 60000, // Refresh every minute
     staleTime: 30000,
@@ -129,4 +131,4 @@ export function useVaultReallocations() {
     error: error instanceof Error ? error.message : null,
     refresh: refetch,
   };
-} 
+}
