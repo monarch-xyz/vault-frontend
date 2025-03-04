@@ -116,7 +116,7 @@ const preventLayoutShift = {
 };
 
 export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
   const { markets } = useMarkets();
   const { data: vault, refetch, isRefetching } = useVault();
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
@@ -431,7 +431,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
             {/* Add the centered Morpho logo */}
             <div className="mb-6 flex justify-center">
               <Image
-                src={theme === 'light' ? MorphoLightLogo : MorphoDarkLogo}
+                src={resolvedTheme === 'light' ? MorphoLightLogo : MorphoDarkLogo}
                 alt="Powered by Morpho"
                 height={30}
                 width={150}
