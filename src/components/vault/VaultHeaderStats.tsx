@@ -103,11 +103,17 @@ function MarketAllocationRow({
   );
 }
 
+// Add this style to your component to prevent layout shift
+const preventLayoutShift = {
+  paddingRight: 'var(--removed-body-scroll-bar-size, 0px)'
+};
+
 export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   const { markets } = useMarkets();
   const { data: vault, refetch, isRefetching } = useVault();
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
   const totalAssets = vault ? BigInt(vault.state.totalAssets) : BigInt(0);
 
@@ -140,28 +146,22 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
 
   return (
     <>
-      <div className="grid w-full grid-cols-1 gap-4 font-zen md:grid-cols-3 md:gap-6">
+      <div 
+        className="grid w-full grid-cols-1 gap-4 font-zen md:grid-cols-3 md:gap-6"
+        style={preventLayoutShift}
+      >
         {/* Box 1: Vault Info */}
         <div className="bg-surface rounded p-4 shadow-sm md:p-6">
           <div className="flex h-full flex-col">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm text-gray-500">M1 Smart Vault</h3>
-                <Tooltip
-                  content={
-                    <TooltipContent
-                      icon={<RiRobot2Fill className="h-4 w-4 text-primary" />}
-                      title="M1 Smart Vault"
-                      detail="An AI-powered vault that automatically manages your deposits across multiple lending markets to maximize yield while maintaining optimal risk levels."
-                    />
-                  }
-                  placement="bottom"
-                  className="rounded-sm"
+                <button 
+                  onClick={() => setIsInfoModalOpen(true)}
+                  className="cursor-pointer transition-colors hover:text-primary"
                 >
-                  <div className="cursor-help">
-                    <BsQuestionCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                  </div>
-                </Tooltip>
+                  <BsQuestionCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                </button>
               </div>
             </div>
             <div className="flex flex-wrap gap-8">
@@ -275,7 +275,9 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
           base: 'bg-surface rounded-lg font-zen',
           header: 'border-b border-divider',
           body: 'p-8',
+          backdrop: 'backdrop-blur-sm'
         }}
+        scrollBehavior="outside"
         size="xl"
       >
         <ModalContent>
@@ -314,6 +316,61 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                       />
                     );
                   })}
+            </div>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* M1 Info Modal with improved configuration */}
+      <Modal
+        isOpen={isInfoModalOpen}
+        onClose={() => setIsInfoModalOpen(false)}
+        classNames={{
+          base: 'bg-surface rounded-lg font-zen',
+          header: 'border-b border-divider',
+          body: 'p-8',
+          backdrop: 'backdrop-blur-sm'
+        }}
+        scrollBehavior="outside"
+        size="lg"
+      >
+        <ModalContent>
+          <ModalHeader className="p-6">
+            <div className="flex w-full items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h3 className="font-zen text-lg font-medium">M1 Smart Vault</h3>
+              </div>
+            </div>
+          </ModalHeader>
+          <ModalBody>
+            <div className="mb-6 rounded-lg bg-primary/5 p-4">
+              <div className="mb-2 flex items-center gap-2 text-primary">
+                <RiRobot2Fill className="h-4 w-4" />
+                <span className="text-sm font-medium">{AGENT_NAME} - AI Allocator</span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Monarch Vault is an AI-powered Morpho vault where the M1 agent manages funds by reallocating assets across a pre-approved set of markets to optimize returns.
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                The agent can only move assets between approved markets and cannot withdraw funds from the vault. This creates essential safety boundaries.
+              </p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                This interface provides full transparency into how the agent operates - you can view all market reallocations and live performance metrics.
+              </p>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button 
+                variant="secondary" 
+                size="sm"
+                onClick={() => window.open(`https://app.morpho.org/base/vault/${vaultAddress}/monarch-m1/`, '_blank')}
+                className="flex items-center gap-1"
+              >
+                View on Morpho
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="ml-1">
+                  <path d="M10 6H6C4.89543 6 4 6.89543 4 8V18C4 19.1046 4.89543 20 6 20H16C17.1046 20 18 19.1046 18 18V14M14 4H20M20 4V10M20 4L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </Button>
             </div>
           </ModalBody>
         </ModalContent>

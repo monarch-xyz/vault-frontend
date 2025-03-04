@@ -1,4 +1,4 @@
-export const AGENT_NAME = 'WoWo';
+export const AGENT_NAME = 'M1';
 
 // Define all possible activity types
 export enum ActivityType {

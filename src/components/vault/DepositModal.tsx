@@ -83,11 +83,11 @@ export function DepositModal({ isOpen, onClose, vaultAddress }: DepositModalProp
                 <span className="font-medium">AI-Managed Vault</span>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Your funds will be managed by WoWo, an AI agent that optimizes yield across Morpho
+                Your funds will be managed by M1, an AI agent that optimizes yield across Morpho
                 markets.
               </p>
               <div className="mt-6 text-xs text-gray-500">
-                💡 Deposit $10+ to interact with WoWo.
+                💡 Deposit $10+ to interact with M1.
               </div>
             </div>
 

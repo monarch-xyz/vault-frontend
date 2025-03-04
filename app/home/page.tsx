@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import HomeClient from './client-page';
 
 export const metadata: Metadata = {
-  title: 'Monarch Vault',
+  title: 'M1 Smart Vault',
   description: 'Monarch Vault',
 };
 

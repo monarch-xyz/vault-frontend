@@ -2,7 +2,7 @@ import { generateMetadata } from '@/utils/generateMetadata';
 import VaultPage from './home/content';
 
 export const metadata = generateMetadata({
-  title: `Monarch Vault`,
+  title: `M1 Vault`,
   description: 'Lending Vault managed by AI Agents',
   images: 'themes.png',
   pathname: '',
