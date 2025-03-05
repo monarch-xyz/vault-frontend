@@ -146,18 +146,6 @@ function SystemLogBubble({ log }: { log: LogEntry }) {
           <p>{log.message}</p>
         )}
       </div>
-      {log.data?.tx_hash && (
-        <div className="mt-2 text-xs text-gray-500">
-          <a
-            href={`https://basescan.org/tx/${log.data.tx_hash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-monospace text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            TX: {log.data.tx_hash.slice(0, 6)}...{log.data.tx_hash.slice(-4)}
-          </a>
-        </div>
-      )}
     </div>
   );
 }

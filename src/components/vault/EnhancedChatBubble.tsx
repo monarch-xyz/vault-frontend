@@ -81,12 +81,12 @@ export function EnhancedChatBubble({ message }: EnhancedChatBubbleProps) {
       {message.tx && (
         <div className="mt-2 text-xs text-gray-500">
           <a
-            href={`https://basescan.org/tx/${message.tx}`}
+            href={`https://basescan.org/tx/0x${message.tx}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
           >
-            TX: {message.tx.slice(0, 6)}...{message.tx.slice(-4)}
+            TX: 0x{message.tx.slice(0, 6)}...{message.tx.slice(-4)}
           </a>
         </div>
       )}
