@@ -16,6 +16,8 @@ import { useTheme } from 'next-themes';
 import { findToken } from '@/utils/tokens';
 import { Market } from '@/utils/types';
 import { DepositModal } from './DepositModal';
+import { useVaultPosition } from '@/hooks/useVaultPosition';
+import { useAccount } from 'wagmi';
 
 import PoweredByMorphoDark from '@/imgs/morpho/powered-by-morpho-dark.svg';
 import PoweredByMorphoLight from '@/imgs/morpho/powered-by-morpho-light.svg';
@@ -122,11 +124,18 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   const { resolvedTheme } = useTheme();
   const { markets } = useMarkets();
   const { data: vault, refetch, isRefetching } = useVault();
+  const { data: position } = useVaultPosition(vaultAddress);
+  const { isConnected } = useAccount();
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
 
   const totalAssets = vault ? BigInt(vault.state.totalAssets) : BigInt(0);
+
+  // Format the user's assets for display if they exist
+  const userAssetsFormatted = position?.assets 
+    ? formatReadable(formatBalance(BigInt(position.assets), 6)) 
+    : '0';
 
   // Check if user has seen the intro before
   useEffect(() => {
@@ -175,7 +184,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
         className="grid w-full grid-cols-1 gap-4 font-zen md:grid-cols-3 md:gap-6"
         style={preventLayoutShift}
       >
-        {/* Box 1: Vault Info */}
+        {/* Box 1: Vault Info with TVL and APY */}
         <div className="bg-surface rounded p-4 shadow-sm md:p-6">
           <div className="flex h-full flex-col">
             <div className="mb-4 flex items-center justify-between">
@@ -200,6 +209,8 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                 Morpho                
               </div>
             </div>
+            
+            {/* APY and TVL Section */}
             <div className="flex flex-wrap gap-8">
               <div>
                 <div className="text-xs text-gray-500">Current APY</div>
@@ -255,6 +266,15 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                   </Tooltip>
                 </div>
               </div>
+              <div>
+                <div className="text-xs text-gray-500">TVL</div>
+                <div className="flex items-center gap-1">
+                  <Image src={USDC.img} alt={USDC.symbol} width={16} height={16} />
+                  <div className="text-sm">
+                    {formatReadable(formatBalance(totalAssets, 6))} USDC
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -286,36 +306,28 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
           </div>
         </div>
 
-        {/* Box 3: TVL with Base Chain Logo */}
+        {/* Box 3: My Position */}
         <div className="bg-surface rounded p-4 shadow-sm md:p-6">
           <div className="flex h-full flex-col">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm text-gray-500">Total Value Locked</h3>
+              <h3 className="text-sm text-gray-500">My Position</h3>
               <Button variant="cta" size="sm" onClick={() => setIsDepositModalOpen(true)}>
                 Deposit
               </Button>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Image src={USDC.img} alt={USDC.symbol} width={20} height={20} />
-                <span className="text-base md:text-lg">
-                  {formatReadable(formatBalance(totalAssets, 6))} USDC
-                </span>
-              </div>
-              <div className="flex items-center">
-                <Tooltip content="Deployed on Base Chain">
-                  <div className="flex items-center text-xs text-gray-500">
-                    <span className="mr-1.5"> on</span>
-                    <Image
-                      src={BaseLogo}
-                      alt="Base Chain"
-                      width={18}
-                      height={18}
-                      className="rounded-full"
-                    />
+            <div className="flex flex-wrap gap-1.5">
+              {isConnected ? (
+                <div className="w-full">
+                  <div className="flex items-center gap-1">
+                    <Image src={USDC.img} alt={USDC.symbol} width={16} height={16} />
+                    <div className="text-sm">
+                      {userAssetsFormatted} USDC
+                    </div>
                   </div>
-                </Tooltip>
-              </div>
+                </div>
+              ) : (
+                <div className="text-gray-500 text-sm">Connect wallet to view your position</div>
+              )}
             </div>
           </div>
         </div>
@@ -407,7 +419,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
 
               <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
                 Monarch Vault is an AI-powered Morpho vault where the M1 agent manages funds by
-                reallocating assets across a pre-approved set of markets to optimize returns.
+                reallocating assets across a pre-approved set of Morpho lending markets to optimize returns.
               </p>
               <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
                 The agent can only move assets between approved markets and cannot withdraw funds
