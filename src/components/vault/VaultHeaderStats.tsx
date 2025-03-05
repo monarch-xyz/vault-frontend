@@ -268,12 +268,23 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
               </div>
               <div>
                 <div className="text-xs text-gray-500">TVL</div>
-                <div className="flex items-center gap-1">
-                  <Image src={USDC.img} alt={USDC.symbol} width={16} height={16} />
-                  <div className="text-sm">
-                    {formatReadable(formatBalance(totalAssets, 6))} USDC
+                <Tooltip
+                  className="rounded-sm"
+                  content={
+                    <TooltipContent
+                      icon={<Image src={USDC.img} alt={USDC.symbol} width={16} height={16} />}
+                      title="Total Value Locked"
+                      detail={`${formatBalance(totalAssets, 6)} USDC`}
+                    />
+                  }
+                >
+                  <div className="flex items-center gap-1 cursor-help">
+                    <Image src={USDC.img} alt={USDC.symbol} width={16} height={16} />
+                    <div className="text-sm">
+                      {formatReadable(formatBalance(totalAssets, 6))} USDC
+                    </div>
                   </div>
-                </div>
+                </Tooltip>
               </div>
             </div>
           </div>
@@ -320,7 +331,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                 <div className="w-full">
                   <div className="flex items-center gap-1">
                     <Image src={USDC.img} alt={USDC.symbol} width={16} height={16} />
-                    <div className="text-sm">
+                    <div className="text-base">
                       {userAssetsFormatted} USDC
                     </div>
                   </div>
