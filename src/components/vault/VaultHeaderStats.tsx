@@ -16,8 +16,13 @@ import { useTheme } from 'next-themes';
 import { findToken } from '@/utils/tokens';
 import { Market } from '@/utils/types';
 import { DepositModal } from './DepositModal';
-import MorphoDarkLogo from '@/imgs/morpho/powered-by-morpho-dark.svg';
-import MorphoLightLogo from '@/imgs/morpho/powered-by-morpho-light.svg';
+
+import PoweredByMorphoDark from '@/imgs/morpho/powered-by-morpho-dark.svg';
+import PoweredByMorphoLight from '@/imgs/morpho/powered-by-morpho-light.svg';
+import MorphoLogoLight from '@/imgs/morpho/morpho-logo-light.svg';
+import MorphoLogoDark from '@/imgs/morpho/morpho-logo-dark.svg';
+
+import MorphoToken from '@/imgs/tokens/morpho.svg';
 
 const USDC = {
   symbol: 'USDC',
@@ -25,8 +30,6 @@ const USDC = {
   decimals: 6,
   address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
 };
-
-const MorphoLogo = require('../../../src/imgs/tokens/morpho.svg') as string;
 
 // Either add this or use an existing one from your project
 const BaseLogo = require('../../../src/imgs/chains/base.webp') as string; // You may need to add this file to your project
@@ -185,83 +188,71 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                   <BsQuestionCircle className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
                 </button>
               </div>
+
+              <div className="flex gap-2 font-zen items-center text-xs text-secondary">
+                Powered by 
+                <Image
+                  src={resolvedTheme === 'light' ? MorphoLogoLight : MorphoLogoDark}
+                  alt="Morpho"
+                  width={16}
+                  height={16}
+                />
+                Morpho                
+              </div>
             </div>
             <div className="flex flex-wrap gap-8">
               <div>
                 <div className="text-xs text-gray-500">Current APY</div>
                 <div className="flex items-center gap-1">
-                  <div className="text-sm text-primary">
-                    {vault?.state.apy ? (vault.state.apy * 100).toFixed(2) : '0.00'}%
-                  </div>
-                  {vault?.state.netApy && vault.state.netApy > vault.state.apy && (
-                    <Tooltip
-                      className="rounded-sm"
-                      content={
-                        <TooltipContent
-                          icon={<Image src={MorphoLogo} alt="Morpho" width={16} height={16} />}
-                          title={`Total APY with Rewards`}
-                          detail={`${(vault.state.netApy * 100).toFixed(
-                            2,
-                          )}% including Morpho token rewards on top of base lending APY`}
-                        />
-                      }
-                    >
-                      <div className="flex items-center text-primary">
-                        <span className="text-xs">
-                          (+{Math.max(0, (vault.state.netApy - vault.state.apy) * 100).toFixed(2)}%
-                        </span>
-                        <Image
-                          src={MorphoLogo}
-                          alt="Morpho"
-                          width={16}
-                          height={16}
-                          className="ml-0.5"
-                        />
-                        <span className="text-xs">)</span>
-                      </div>
-                    </Tooltip>
-                  )}
+                  <Tooltip
+                    className="rounded-sm"
+                    content={
+                      <TooltipContent
+                        icon={<Image src={MorphoToken} alt="Morpho" width={16} height={16} />}
+                        title="APY Breakdown"
+                        detail={`Base APY: ${vault?.state.apy ? (vault.state.apy * 100).toFixed(2) : '0.00'}%${
+                          vault?.state.netApy && vault.state.netApy > vault.state.apy
+                            ? ` + Morpho Rewards: ${Math.max(
+                                0,
+                                (vault.state.netApy - vault.state.apy) * 100
+                              ).toFixed(2)}%`
+                            : ''
+                        }`}
+                      />
+                    }
+                  >
+                    <div className="text-sm text-primary flex items-center gap-1 cursor-help">
+                      {vault?.state.netApy ? (vault.state.netApy * 100).toFixed(2) : '0.00'}%
+                    </div>
+                  </Tooltip>
                 </div>
               </div>
               <div>
                 <div className="text-xs text-gray-500">Daily APY</div>
                 <div className="flex items-center gap-1">
-                  <div className="text-sm text-primary">
-                    {vault?.state.dailyApy ? (vault.state.dailyApy * 100).toFixed(2) : '0.00'}%
-                  </div>
-                  {vault?.state.dailyNetApy && vault.state.dailyNetApy > vault.state.dailyApy && (
-                    <Tooltip
-                      className="rounded-sm"
-                      content={
-                        <TooltipContent
-                          icon={<Image src={MorphoLogo} alt="Morpho" width={16} height={16} />}
-                          title={`Total Daily APY with Rewards`}
-                          detail={`Daily rate: ${(vault.state.dailyNetApy * 100).toFixed(
-                            2,
-                          )}% including Morpho token rewards on top of base lending APY`}
-                        />
-                      }
-                    >
-                      <div className="flex items-center text-primary">
-                        <span className="text-xs">
-                          (+
-                          {Math.max(
-                            0,
-                            (vault.state.dailyNetApy - vault.state.dailyApy) * 100,
-                          ).toFixed(2)}
-                          %
-                        </span>
-                        <Image
-                          src={MorphoLogo}
-                          alt="Morpho"
-                          width={16}
-                          height={16}
-                          className="ml-0.5"
-                        />
-                        <span className="text-xs">)</span>
-                      </div>
-                    </Tooltip>
-                  )}
+                  <Tooltip
+                    className="rounded-sm"
+                    content={
+                      <TooltipContent
+                        icon={<Image src={MorphoToken} alt="Morpho" width={16} height={16} />}
+                        title="Daily APY Breakdown"
+                        detail={`Base Daily APY: ${
+                          vault?.state.dailyApy ? (vault.state.dailyApy * 100).toFixed(2) : '0.00'
+                        }%${
+                          vault?.state.dailyNetApy && vault.state.dailyNetApy > vault.state.dailyApy
+                            ? ` + Morpho Rewards: ${Math.max(
+                                0,
+                                (vault.state.dailyNetApy - vault.state.dailyApy) * 100
+                              ).toFixed(2)}%`
+                            : ''
+                        }`}
+                      />
+                    }
+                  >
+                    <div className="text-sm text-primary flex items-center gap-1 cursor-help">
+                      {vault?.state.dailyNetApy ? (vault.state.dailyNetApy * 100).toFixed(2) : '0.00'}%
+                    </div>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -431,7 +422,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
             {/* Add the centered Morpho logo */}
             <div className="mb-6 flex justify-center">
               <Image
-                src={resolvedTheme === 'light' ? MorphoLightLogo : MorphoDarkLogo}
+                src={resolvedTheme === 'light' ? PoweredByMorphoLight : PoweredByMorphoDark}
                 alt="Powered by Morpho"
                 height={30}
                 width={150}
