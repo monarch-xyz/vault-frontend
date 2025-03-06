@@ -501,7 +501,15 @@ const getUniqueTokens = (tokenList: { address: string; chainId: number }[]) => {
   });
 };
 
+const USDC = {
+  symbol: 'USDC',
+  img: require('../../src/imgs/tokens/usdc.webp') as string,
+  decimals: 6,
+  address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+};
+
 export {
+  USDC,
   supportedTokens,
   isWhitelisted,
   findTokenWithKey,

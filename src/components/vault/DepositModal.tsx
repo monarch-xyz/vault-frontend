@@ -11,14 +11,10 @@ import { formatBalance } from '@/utils/balance';
 import { AGENT_NAME } from '@/utils/constants';
 import { useAccount, useBalance, useSwitchChain } from 'wagmi';
 import { SupportedNetworks } from '@/utils/networks';
+import { USDC } from '@/utils/tokens';
+
 const BASE_ICON = require('../../../src/imgs/chains/base.webp') as string;
 
-const USDC = {
-  symbol: 'USDC',
-  img: require('../../../src/imgs/tokens/usdc.webp') as string,
-  decimals: 6,
-  address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-};
 
 type DepositModalProps = {
   isOpen: boolean;

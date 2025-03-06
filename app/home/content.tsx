@@ -5,13 +5,6 @@ import { ActivityCard } from '@/components/vault/ActivityCard';
 import { LiveStatusCard } from '@/components/vault/LiveStatusCard';
 import { VaultHeaderStats } from '@/components/vault/VaultHeaderStats';
 
-const USDC = {
-  symbol: 'USDC',
-  img: require('../../src/imgs/tokens/usdc.webp') as string,
-  decimals: 6,
-  address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
-};
-
 const vaultAddress = '0x346aac1e83239db6a6cb760e95e13258ad3d1a6d';
 
 export default function HomeContent() {
