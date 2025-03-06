@@ -40,7 +40,7 @@ export function useTransactionWithToast({
   const onClick = useCallback(() => {
     if (hash) {
       // if chainId is not supported, use 1
-      const chainIdToUse = chainId ?? 1;
+      const chainIdToUse = chainId ?? SupportedNetworks.Base;
       window.open(getExplorerTxURL(hash, chainIdToUse as SupportedNetworks), '_blank');
     }
   }, [hash, chainId]);
