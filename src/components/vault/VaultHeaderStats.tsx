@@ -18,6 +18,7 @@ import { DepositModal } from './DepositModal';
 import { useVaultPosition } from '@/hooks/useVaultPosition';
 import { useAccount } from 'wagmi';
 import { MarketAllocationModal } from './MarketAllocationModal';
+import { WithdrawModal } from './WithdrawModal';
 
 import PoweredByMorphoDark from '@/imgs/morpho/powered-by-morpho-dark.svg';
 import PoweredByMorphoLight from '@/imgs/morpho/powered-by-morpho-light.svg';
@@ -36,6 +37,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   const { isConnected } = useAccount();
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -241,9 +243,20 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
           <div className="flex h-full flex-col">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-sm text-gray-500">My Position</h3>
-              <Button variant="cta" size="sm" onClick={() => setIsDepositModalOpen(true)}>
-                Deposit
-              </Button>
+              <div className="flex gap-2">
+                {position?.assets && BigInt(position.assets) > 0n && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setIsWithdrawModalOpen(true)}
+                  >
+                    Withdraw
+                  </Button>
+                )}
+                <Button variant="cta" size="sm" onClick={() => setIsDepositModalOpen(true)}>
+                  Deposit
+                </Button>
+              </div>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {isConnected ? (
@@ -366,6 +379,12 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
       <DepositModal
         isOpen={isDepositModalOpen}
         onClose={() => setIsDepositModalOpen(false)}
+        vaultAddress={vaultAddress}
+      />
+
+      <WithdrawModal
+        isOpen={isWithdrawModalOpen}
+        onClose={() => setIsWithdrawModalOpen(false)}
         vaultAddress={vaultAddress}
       />
     </>
