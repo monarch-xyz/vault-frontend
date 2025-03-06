@@ -38,15 +38,9 @@ export function MarketAllocationRow({ market, amount, totalAssets }: MarketAlloc
         <div className="flex items-center gap-2">
           {/* Display both USDC and collateral tokens */}
           <div className="flex items-center">
-            <Image
-              src={USDC.img}
-              alt="USDC"
-              width={20}
-              height={20}
-              className="rounded-full"
-            />
+            <Image src={USDC.img} alt="USDC" width={20} height={20} className="rounded-full" />
             <span className="mx-1 text-xs text-gray-500">/</span>
-            <Tooltip 
+            <Tooltip
               content={`Borrowers in this market use ${market.collateralAsset.symbol} as collateral to borrow your USDC`}
               placement="bottom"
             >
@@ -90,4 +84,4 @@ export function MarketAllocationRow({ market, amount, totalAssets }: MarketAlloc
       </div>
     </div>
   );
-} 
+}

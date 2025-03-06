@@ -9,13 +9,13 @@ type DataPoint = {
 };
 
 type HistoricalState = {
-  assets: Array<{ x: number; y: number }>;  // assets are numbers
-  shares: Array<{ x: number; y: string }>;  // shares are strings
+  assets: Array<{ x: number; y: number }>; // assets are numbers
+  shares: Array<{ x: number; y: string }>; // shares are strings
 };
 
 type VaultPosition = {
-  shares: string;       // shares is a string (big number)
-  assets: number;       // assets is a number
+  shares: string; // shares is a string (big number)
+  assets: number; // assets is a number
   historicalState: HistoricalState;
 };
 
@@ -49,7 +49,7 @@ const vaultPositionQuery = `
 // Fetch function for GraphQL API
 const graphqlFetcher = async (
   query: string,
-  variables: Record<string, unknown>
+  variables: Record<string, unknown>,
 ): Promise<VaultPositionResponse> => {
   const response = await fetch(URLS.MORPHO_BLUE_API, {
     method: 'POST',
@@ -68,7 +68,7 @@ const graphqlFetcher = async (
     throw new Error('Network response was not ok');
   }
 
-  const result = await response.json() as VaultPositionResponse;
+  const result = (await response.json()) as VaultPositionResponse;
 
   if (result.errors) {
     throw new Error(result.errors[0].message);
@@ -82,19 +82,19 @@ const POLLING_INTERVAL = 20000; // 20 seconds to match useVault
 export const useVaultPosition = (vaultAddress: string) => {
   // Get connected wallet address
   const { address: userAddress, isConnected } = useAccount();
-  
+
   return useQuery<VaultPosition | null>({
     queryKey: ['vaultPosition', vaultAddress, userAddress],
     queryFn: async () => {
       if (!userAddress || !isConnected) {
         return null;
       }
-      
+
       const response = await graphqlFetcher(vaultPositionQuery, {
         userAddress,
         vaultAddress,
       });
-      
+
       return response.data.vaultPosition;
     },
     // Don't fetch if user is not connected
@@ -105,4 +105,4 @@ export const useVaultPosition = (vaultAddress: string) => {
     retry: 2,
     retryDelay: 1000,
   });
-}; 
+};

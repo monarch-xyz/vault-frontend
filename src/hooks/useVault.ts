@@ -8,7 +8,7 @@ import { URLS } from '@/utils/urls';
 const vaultAddress = '0x346aac1e83239db6a6cb760e95e13258ad3d1a6d';
 
 // New types to match the API response
-type VaultAllocation = {
+export type VaultAllocation = {
   market: {
     id: string;
     uniqueKey: string;
@@ -16,12 +16,12 @@ type VaultAllocation = {
   supplyAssets: number;
 };
 
-type VaultAsset = {
+export type VaultAsset = {
   id: string;
   decimals: number;
 };
 
-type VaultState = {
+export type VaultState = {
   dailyApy: number;
   apy: number;
   dailyNetApy: number;
@@ -32,7 +32,7 @@ type VaultState = {
   lastUpdate: number;
 };
 
-type VaultData = {
+export type VaultData = {
   state: VaultState;
   asset: VaultAsset;
 };

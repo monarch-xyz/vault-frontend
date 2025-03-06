@@ -17,7 +17,7 @@ import { findToken } from '@/utils/tokens';
 import { DepositModal } from './DepositModal';
 import { useVaultPosition } from '@/hooks/useVaultPosition';
 import { useAccount } from 'wagmi';
-import { MarketAllocationRow } from './MarketAllocationRow';
+import { MarketAllocationModal } from './MarketAllocationModal';
 
 import PoweredByMorphoDark from '@/imgs/morpho/powered-by-morpho-dark.svg';
 import PoweredByMorphoLight from '@/imgs/morpho/powered-by-morpho-light.svg';
@@ -28,28 +28,6 @@ import MorphoToken from '@/imgs/tokens/morpho.svg';
 
 import { USDC } from '@/utils/tokens';
 
-function AllocationDescription() {
-  return (
-    <div className="mb-6 rounded-lg bg-primary/5 p-4">
-      <div className="mb-2 flex items-center gap-2 text-primary">
-        <RiRobot2Fill className="h-4 w-4" />
-        <span className="text-sm font-medium">{AGENT_NAME} - AI Allocator</span>
-      </div>
-      <p className="text-sm text-gray-600 dark:text-gray-400">
-        {AGENT_NAME} manages the vaults by allocating USDC into different lending markets backed by different collateral assets.
-        <br/>
-
-        The following table shows the current allocation
-      </p>
-    </div>
-  );
-}
-
-// Add this style to your component to prevent layout shift
-const preventLayoutShift = {
-  paddingRight: 'var(--removed-body-scroll-bar-size, 0px)',
-};
-
 export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   const { resolvedTheme } = useTheme();
   const { markets } = useMarkets();
@@ -59,14 +37,21 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  console.log('resolvedTheme', resolvedTheme, resolvedTheme === 'light')
+  // This effect runs only on the client side after hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Determine the actual theme to use for images
+  const currentTheme = mounted ? resolvedTheme : 'light'; // Default to light if not mounted yet
 
   const totalAssets = vault ? BigInt(vault.state.totalAssets) : BigInt(0);
 
   // Format the user's assets for display if they exist
-  const userAssetsFormatted = position?.assets 
-    ? formatReadable(formatBalance(BigInt(position.assets), 6)) 
+  const userAssetsFormatted = position?.assets
+    ? formatReadable(formatBalance(BigInt(position.assets), 6))
     : '0';
 
   // Check if user has seen the intro before
@@ -112,10 +97,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
 
   return (
     <>
-      <div
-        className="grid w-full grid-cols-1 gap-4 font-zen md:grid-cols-3 md:gap-6"
-        style={preventLayoutShift}
-      >
+      <div className="grid w-full grid-cols-1 gap-4 font-zen md:grid-cols-3 md:gap-6">
         {/* Box 1: Vault Info with TVL and APY */}
         <div className="bg-surface rounded p-4 shadow-sm md:p-6">
           <div className="flex h-full flex-col">
@@ -130,18 +112,18 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                 </button>
               </div>
 
-              <div className="flex gap-2 font-zen items-center text-xs text-secondary">
-                Powered by 
+              <div className="flex items-center gap-2 font-zen text-xs text-secondary">
+                Powered by
                 <Image
-                  src={resolvedTheme === 'light' ? MorphoLogoLight : MorphoLogoDark}
+                  src={currentTheme === 'light' ? MorphoLogoLight : MorphoLogoDark}
                   alt="Morpho"
                   width={16}
                   height={16}
                 />
-                Morpho                
+                Morpho
               </div>
             </div>
-            
+
             {/* APY and TVL Section */}
             <div className="flex flex-wrap gap-8">
               <div>
@@ -153,18 +135,20 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                       <TooltipContent
                         icon={<Image src={MorphoToken} alt="Morpho" width={16} height={16} />}
                         title="APY Breakdown"
-                        detail={`Base APY: ${vault?.state.apy ? (vault.state.apy * 100).toFixed(2) : '0.00'}%${
+                        detail={`Base APY: ${
+                          vault?.state.apy ? (vault.state.apy * 100).toFixed(2) : '0.00'
+                        }%${
                           vault?.state.netApy && vault.state.netApy > vault.state.apy
                             ? ` + Morpho Rewards: ${Math.max(
                                 0,
-                                (vault.state.netApy - vault.state.apy) * 100
+                                (vault.state.netApy - vault.state.apy) * 100,
                               ).toFixed(2)}%`
                             : ''
                         }`}
                       />
                     }
                   >
-                    <div className="text-sm text-primary flex items-center gap-1 cursor-help">
+                    <div className="flex cursor-help items-center gap-1 text-sm text-primary">
                       {vault?.state.netApy ? (vault.state.netApy * 100).toFixed(2) : '0.00'}%
                     </div>
                   </Tooltip>
@@ -185,15 +169,18 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                           vault?.state.dailyNetApy && vault.state.dailyNetApy > vault.state.dailyApy
                             ? ` + Morpho Rewards: ${Math.max(
                                 0,
-                                (vault.state.dailyNetApy - vault.state.dailyApy) * 100
+                                (vault.state.dailyNetApy - vault.state.dailyApy) * 100,
                               ).toFixed(2)}%`
                             : ''
                         }`}
                       />
                     }
                   >
-                    <div className="text-sm text-primary flex items-center gap-1 cursor-help">
-                      {vault?.state.dailyNetApy ? (vault.state.dailyNetApy * 100).toFixed(2) : '0.00'}%
+                    <div className="flex cursor-help items-center gap-1 text-sm text-primary">
+                      {vault?.state.dailyNetApy
+                        ? (vault.state.dailyNetApy * 100).toFixed(2)
+                        : '0.00'}
+                      %
                     </div>
                   </Tooltip>
                 </div>
@@ -210,7 +197,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                     />
                   }
                 >
-                  <div className="flex items-center gap-1 cursor-help">
+                  <div className="flex cursor-help items-center gap-1">
                     <Image src={USDC.img} alt={USDC.symbol} width={16} height={16} />
                     <div className="text-sm">
                       {formatReadable(formatBalance(totalAssets, 6))} USDC
@@ -263,72 +250,27 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
                 <div className="w-full">
                   <div className="flex items-center gap-1">
                     <Image src={USDC.img} alt={USDC.symbol} width={16} height={16} />
-                    <div className="text-base">
-                      {userAssetsFormatted} USDC
-                    </div>
+                    <div className="text-base">{userAssetsFormatted} USDC</div>
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-500 text-sm">Connect wallet to view your position</div>
+                <div className="text-sm text-gray-500">Connect wallet to view your position</div>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Modal - Updated to use the imported MarketAllocationRow component */}
-      <Modal
+      {/* Replace the old modal code with the new component */}
+      <MarketAllocationModal
         isOpen={isAllocationModalOpen}
         onClose={() => setIsAllocationModalOpen(false)}
-        classNames={{
-          base: 'bg-surface rounded-lg font-zen',
-          header: 'border-b border-divider',
-          body: 'p-8',
-          backdrop: 'backdrop-blur-sm',
-        }}
-        scrollBehavior="outside"
-        size="xl"
-      >
-        <ModalContent>
-          <ModalHeader className="p-6">
-            <div className="flex w-full items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h3 className="font-zen text-lg font-medium">Market Allocations</h3>
-                <button
-                  onClick={async () => refetch()}
-                  className={`rounded-full p-1 text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800
-                    ${isRefetching ? 'animate-spin' : ''}`}
-                  disabled={isRefetching}
-                  title="Refresh allocation data"
-                >
-                  <IoMdRefresh className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </ModalHeader>
-          <ModalBody>
-            <AllocationDescription />
-            <div className="space-y-2">
-              {markets &&
-                vault?.state.allocation
-                  .sort((a, b) => Number(b.supplyAssets) - Number(a.supplyAssets))
-                  .map((allocation: any) => {
-                    const market = markets.find((m) => m.uniqueKey === allocation.market.uniqueKey);
-                    if (!market) return null;
-
-                    return (
-                      <MarketAllocationRow
-                        key={allocation.market.uniqueKey}
-                        market={market}
-                        amount={BigInt(allocation.supplyAssets)}
-                        totalAssets={totalAssets}
-                      />
-                    );
-                  })}
-            </div>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+        markets={markets}
+        vault={vault}
+        totalAssets={totalAssets}
+        refetch={refetch}
+        isRefetching={isRefetching}
+      />
 
       {/* M1 Info Modal with improved configuration and Morpho logo */}
       <Modal
@@ -362,7 +304,8 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
 
               <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
                 Monarch Vault is an AI-powered Morpho vault where the M1 agent manages funds by
-                reallocating assets across a pre-approved set of Morpho lending markets to optimize returns.
+                reallocating assets across a pre-approved set of Morpho lending markets to optimize
+                returns.
               </p>
               <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
                 The agent can only move assets between approved markets and cannot withdraw funds
@@ -377,7 +320,7 @@ export function VaultHeaderStats({ vaultAddress }: { vaultAddress: string }) {
             {/* Add the centered Morpho logo */}
             <div className="mb-6 flex justify-center">
               <Image
-                src={resolvedTheme === 'light' ? PoweredByMorphoLight : PoweredByMorphoDark}
+                src={currentTheme === 'light' ? PoweredByMorphoLight : PoweredByMorphoDark}
                 alt="Powered by Morpho"
                 height={30}
                 width={150}

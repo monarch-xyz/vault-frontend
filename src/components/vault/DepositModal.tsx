@@ -15,7 +15,6 @@ import { USDC } from '@/utils/tokens';
 
 const BASE_ICON = require('../../../src/imgs/chains/base.webp') as string;
 
-
 type DepositModalProps = {
   isOpen: boolean;
   onClose: () => void;
