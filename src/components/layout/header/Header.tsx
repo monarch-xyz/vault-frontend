@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { FiSun, FiMoon } from 'react-icons/fi';
-import { BiLinkExternal } from 'react-icons/bi';
+import { BiBook, BiLinkExternal } from 'react-icons/bi';
 import { RiDiscordFill } from 'react-icons/ri';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@nextui-org/react';
@@ -28,7 +28,6 @@ function ThemeToggle() {
     </button>
   );
 }
-
 function Header({ ghost }: HeaderProps) {
   const [scrollState, setScrollState] = useState<ScrollState>('at-top');
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -113,9 +112,16 @@ function Header({ ghost }: HeaderProps) {
                     <DropdownItem
                       key="monarch"
                       endContent={<BiLinkExternal className="h-4 w-4" />}
-                      onClick={() => window.open('https://www.monarchlend.xyz/', '_blank')}
+                      onClick={() => window.open(EXTERNAL_LINKS.monarch, '_blank')}
                     >
                       Monarch
+                    </DropdownItem>
+                    <DropdownItem
+                      key="docs"
+                      endContent={<BiBook className="h-4 w-4" />}
+                      onClick={() => window.open(EXTERNAL_LINKS.docs, '_blank')}
+                    >
+                      Docs
                     </DropdownItem>
                   </DropdownMenu>
                 </Dropdown>
