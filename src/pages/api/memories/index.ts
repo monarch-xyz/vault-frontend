@@ -15,17 +15,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { data, error } = await supabase
+    const { since_timestamp } = req.query;
+    
+    // Start building the query
+    let query = supabase
       .from('memories')
-      .select('id, created_at, text, type, sub_type, action_id')
-      .order('created_at', { ascending: false });
+      .select('id, created_at, text, type, sub_type, action_id');
+    
+    // Add timestamp filter if provided
+    if (since_timestamp && typeof since_timestamp === 'string') {
+      // Use gt (greater than) to get memories after the last timestamp
+      query = query.gt('created_at', since_timestamp);
+    }
 
-    if (error) throw error;
+    // Execute the query with ordering
+    const { data, error } = await query.order('created_at', { ascending: true });
+    
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+
+    if (data.length === 0) return ApiResponse.success(res, { data: [] });
     if (!data) return ApiResponse.error(res, 404, 'No memories found');
 
-    return ApiResponse.success(res, data as Memory[]);
+    return ApiResponse.success(res, { data: data as Memory[] });
   } catch (error) {
-    console.error('Supabase error:', error);
+    console.error('Error in memories API:', error);
     return ApiResponse.error(
       res,
       500,
