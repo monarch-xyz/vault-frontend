@@ -16,12 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const { since_timestamp } = req.query;
-    
+
     // Start building the query
-    let query = supabase
-      .from('user-messages')
-      .select('id, created_at, sender, tx, text');
-    
+    let query = supabase.from('user-messages').select('id, created_at, sender, tx, text');
+
     // Add timestamp filter if provided
     if (since_timestamp && typeof since_timestamp === 'string') {
       // Use gt (greater than) to get messages after the last timestamp
@@ -30,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Execute the query with ordering
     const { data, error } = await query.order('created_at', { ascending: true });
-    
+
     if (error) {
       console.error('Supabase error:', error);
       throw error;

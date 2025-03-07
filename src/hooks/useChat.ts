@@ -31,59 +31,62 @@ export function useChat() {
         messageIdsSet.current = new Set();
         latestTimestampRef.current = null;
       }
-      
+
       // Build URL with timestamp filter for subsequent fetches
       let url = '/api/messages';
       if (!isInitialFetch && latestTimestampRef.current) {
         url += `?since_timestamp=${encodeURIComponent(latestTimestampRef.current)}`;
       }
-      
+
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch messages');
       }
 
       const data = await response.json();
       const newMessages = data.data as ChatMessage[];
-      
+
       if (newMessages.length === 0) {
         return; // No new messages to add
       }
-      
+
       // Filter out duplicates and add only new messages
-      const uniqueNewMessages = newMessages.filter(msg => !messageIdsSet.current.has(msg.id));
-      
+      const uniqueNewMessages = newMessages.filter((msg) => !messageIdsSet.current.has(msg.id));
+
       if (uniqueNewMessages.length === 0) {
         return; // No unique new messages to add
       }
-      
+
       // Update our tracking set with new message IDs
-      uniqueNewMessages.forEach(msg => messageIdsSet.current.add(msg.id));
-      
+      uniqueNewMessages.forEach((msg) => messageIdsSet.current.add(msg.id));
+
       // Find the latest timestamp from all messages
-      const latestNewMessage = [...uniqueNewMessages].sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      const latestNewMessage = [...uniqueNewMessages].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
       )[0];
-      
+
       // Only update the timestamp if the new message is more recent
       if (latestNewMessage) {
         const newTimestamp = latestNewMessage.created_at;
         const oldTimestamp = latestTimestampRef.current;
-        
+
         // Compare timestamps if we have an existing one
         if (!oldTimestamp || new Date(newTimestamp) > new Date(oldTimestamp)) {
           latestTimestampRef.current = newTimestamp;
         }
       }
-      
+
       // Update messages state - replace all for initial fetch, append for subsequent fetches
-      setMessages(prevMessages => {
-        const updatedMessages = isInitialFetch ? uniqueNewMessages : [...prevMessages, ...uniqueNewMessages];
-        console.log(`Added ${uniqueNewMessages.length} new messages. Total: ${updatedMessages.length}`);
+      setMessages((prevMessages) => {
+        const updatedMessages = isInitialFetch
+          ? uniqueNewMessages
+          : [...prevMessages, ...uniqueNewMessages];
+        console.log(
+          `Added ${uniqueNewMessages.length} new messages. Total: ${updatedMessages.length}`,
+        );
         return updatedMessages;
       });
-      
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching chat messages:', err);
