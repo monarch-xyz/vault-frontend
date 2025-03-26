@@ -58,7 +58,7 @@ function Header({ ghost }: HeaderProps) {
 
   return (
     <>
-      <div className="h-[120px] w-full" /> {/* Spacer div */}
+      <div className="h-[60px] w-full" /> {/* Spacer div */}
       <header
         data-scroll-state={scrollState}
         className="bg-main fixed left-0 right-0 top-0 flex h-[120px] justify-center pt-8"
