@@ -2,7 +2,6 @@ import './global.css';
 
 import GoogleAnalytics from '@/components/GoogleAnalytics/GoogleAnalytics';
 import { ClientProviders } from '@/components/providers/ClientProviders';
-import RiskNotificationModal from '@/components/RiskNotificationModal';
 import OnchainProviders from '@/OnchainProviders';
 import Header from '@/components/layout/header/Header';
 
@@ -31,7 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <ClientProviders>
               <Header />
               {children}
-              <RiskNotificationModal />
             </ClientProviders>
           </OnchainProviders>
         </ThemeProviders>
