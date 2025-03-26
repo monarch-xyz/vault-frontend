@@ -72,9 +72,9 @@ export default function RunPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold">Run Details</h1>
+        <h1 className="text-2xl font-bold font-zen">Run Details</h1>
         {timestamp && (
-          <p className="text-gray-500">
+          <p className="text-gray-500 font-zen">
             {format(new Date(timestamp), 'MMM d, yyyy HH:mm')}
           </p>
         )}
@@ -84,14 +84,14 @@ export default function RunPage() {
         {/* Thought Process Section */}
         {run.thoughtProcess.length > 0 ? (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Thought Process</h2>
+            <h2 className="text-xl font-semibold font-zen">Thought Process</h2>
             {run.thoughtProcess.map((activity, index) => {
               const type = activity.type as keyof typeof activityTypes;
               const activityType = activityTypes[type];
               return (
                 <Card 
                   key={index} 
-                  className={`${activityType.bgColor} ${activityType.borderColor} border p-6`}
+                  className={`${activityType.bgColor} ${activityType.borderColor} border p-6 font-zen`}
                 >
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
@@ -113,9 +113,9 @@ export default function RunPage() {
         {/* Report Section */}
         {run.report && (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Report</h2>
+            <h2 className="text-xl font-semibold font-zen">Report</h2>
             <Card 
-              className={`${activityTypes.report.bgColor} ${activityTypes.report.borderColor} border p-6`}
+              className={`${activityTypes.report.bgColor} ${activityTypes.report.borderColor} border p-6 font-zen`}
             >
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-2">
@@ -135,9 +135,9 @@ export default function RunPage() {
         {/* Action Section */}
         {run.action && (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Action</h2>
+            <h2 className="text-xl font-semibold font-zen">Action</h2>
             <Card 
-              className={`${activityTypes.action.bgColor} ${activityTypes.action.borderColor} border p-6`}
+              className={`${activityTypes.action.bgColor} ${activityTypes.action.borderColor} border p-6 font-zen`}
             >
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-2">

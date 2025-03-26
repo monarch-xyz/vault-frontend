@@ -74,7 +74,7 @@ export function RunActivityMessage({ activity, showTimestamp = true }: RunActivi
     <>
       <div
         className={`
-          cursor-pointer rounded-lg border p-4 transition-all
+          cursor-pointer rounded-lg border p-4 transition-all font-zen
           ${activityType.bgColor} ${activityType.borderColor}
           group overflow-hidden hover:scale-[1.01]
           hover:bg-opacity-75
@@ -105,7 +105,7 @@ export function RunActivityMessage({ activity, showTimestamp = true }: RunActivi
           </div>
         </div>
         {/* Preview text without markdown */}
-        <div className="line-clamp-2 overflow-hidden text-sm">{text}</div>
+        <div className="line-clamp-2 overflow-hidden text-sm font-zen">{text}</div>
       </div>
 
       {/* Detail Modal - Enhanced styling */}
@@ -144,7 +144,7 @@ export function RunActivityMessage({ activity, showTimestamp = true }: RunActivi
                 </div>
 
                 {/* Content with markdown */}
-                <div className={`text-sm ${activityType.bgColor} rounded-lg p-6`}>
+                <div className={`text-sm font-zen ${activityType.bgColor} rounded-lg p-6`}>
                   <MarkdownText text={text} />
                 </div>
 

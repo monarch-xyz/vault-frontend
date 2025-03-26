@@ -67,14 +67,14 @@ export default function RunsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold">Runs History</h1>
-        <p className="text-gray-500">View all periodic risk checks</p>
+        <h1 className="text-2xl font-bold font-zen">Runs History</h1>
+        <p className="text-gray-500 font-zen">View all periodic risk checks</p>
       </div>
 
       <div className="grid gap-4">
         {runs.map((run) => (
           <Link key={run.id} href={`/run/${run.activity_id}`} className="no-underline">
-            <Card className="bg-surface p-6 transition-all hover:scale-[1.01]">
+            <Card className="bg-surface p-6 transition-all hover:scale-[1.01] font-zen">
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -83,15 +83,15 @@ export default function RunsPage() {
                       Periodic Risk Check
                     </Badge>
                   </div>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-400 font-zen">
                     {format(new Date(run.created_at), 'MMM d, yyyy HH:mm')}
                   </span>
                 </div>
                 <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500">ID: {run.activity_id}</span>
+                  <span className="text-xs text-gray-500 font-zen">ID: {run.activity_id}</span>
                 </div>
-                <div className="line-clamp-2 text-sm text-gray-700 dark:text-gray-300">
+                <div className="line-clamp-2 text-sm text-gray-700 dark:text-gray-300 font-zen">
                   {run.text}
                 </div>
               </div>
@@ -105,17 +105,17 @@ export default function RunsPage() {
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="rounded px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
+            className="rounded px-4 py-2 text-sm text-gray-500 disabled:opacity-50 font-zen"
           >
             Previous
           </button>
-          <span className="px-4 py-2 text-sm text-gray-500">
+          <span className="px-4 py-2 text-sm text-gray-500 font-zen">
             Page {currentPage} of {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="rounded px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
+            className="rounded px-4 py-2 text-sm text-gray-500 disabled:opacity-50 font-zen"
           >
             Next
           </button>
