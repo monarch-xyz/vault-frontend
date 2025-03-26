@@ -1,35 +1,29 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Memory } from '@/lib/supabase/types';
 
-export function useActivities() {
+export function useActivities(type?: string) {
   const [activities, setActivities] = useState<Memory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const latestTimestampRef = useRef<string | null>(null);
-  const activityIdsSet = useRef<Set<string>>(new Set());
-  const activitiesRef = useRef<Memory[]>([]);
+  const PAGE_SIZE = 20;
 
-  // Keep activitiesRef in sync with the activities state
-  useEffect(() => {
-    activitiesRef.current = activities;
-  }, [activities]);
-
-  const fetchActivities = useCallback(async (isInitialFetch = false) => {
+  const fetchActivities = useCallback(async (showLoading = false) => {
     try {
       setError(null);
-      if (isInitialFetch) {
+      if (showLoading) {
         setIsLoading(true);
-        // Reset the activity IDs set and timestamp on initial fetch
-        activityIdsSet.current = new Set();
-        latestTimestampRef.current = null;
       }
 
-      // Build URL with timestamp filter for subsequent fetches
-      let url = '/api/memories';
-      if (!isInitialFetch && latestTimestampRef.current) {
-        url += `?since_timestamp=${encodeURIComponent(latestTimestampRef.current)}`;
+      // Build URL with filters
+      let url = '/api/memories?';
+      const params = new URLSearchParams();
+      
+      // When type is 'all', we don't filter by type in the API
+      if (type && type !== 'all') {
+        params.append('type', type);
       }
-
+      
+      url += params.toString();
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -39,57 +33,16 @@ export function useActivities() {
       const data = await response.json();
       const newActivities = data.data as Memory[];
 
-      if (newActivities.length === 0) {
-        return; // No new activities to add
-      }
-
-      // Filter out duplicates and add only new activities
-      const uniqueNewActivities = newActivities.filter(
-        (activity) => !activityIdsSet.current.has(activity.id),
-      );
-
-      if (uniqueNewActivities.length === 0) {
-        return; // No unique new activities to add
-      }
-
-      // Update our tracking set with new activity IDs
-      uniqueNewActivities.forEach((activity) => activityIdsSet.current.add(activity.id));
-
-      // Find the latest timestamp from all activities
-      const latestNewActivity = [...uniqueNewActivities].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-      )[0];
-
-      // Only update the timestamp if the new activity is more recent
-      if (latestNewActivity) {
-        const newTimestamp = latestNewActivity.created_at;
-        const oldTimestamp = latestTimestampRef.current;
-
-        // Compare timestamps if we have an existing one
-        if (!oldTimestamp || new Date(newTimestamp) > new Date(oldTimestamp)) {
-          latestTimestampRef.current = newTimestamp;
-        }
-      }
-
-      // Update activities state - replace all for initial fetch, append for subsequent fetches
-      setActivities((prevActivities) => {
-        const updatedActivities = isInitialFetch
-          ? uniqueNewActivities
-          : [...prevActivities, ...uniqueNewActivities];
-        console.log(
-          `Added ${uniqueNewActivities.length} new activities. Total: ${updatedActivities.length}`,
-        );
-        return updatedActivities;
-      });
+      setActivities(newActivities);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching activities:', err);
     } finally {
-      if (isInitialFetch) {
+      if (showLoading) {
         setIsLoading(false);
       }
     }
-  }, []); // Empty dependency array to avoid re-creating the function on every render
+  }, [type]);
 
   // Initial fetch
   useEffect(() => {
@@ -109,6 +62,6 @@ export function useActivities() {
     activities,
     isLoading,
     error,
-    refresh: () => fetchActivities(false),
+    refresh: () => fetchActivities(true),
   };
 }

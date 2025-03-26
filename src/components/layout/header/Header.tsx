@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { FiSun, FiMoon } from 'react-icons/fi';
@@ -6,6 +8,7 @@ import { RiDiscordFill } from 'react-icons/ri';
 import { ChevronDownIcon } from '@radix-ui/react-icons';
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from '@nextui-org/react';
 import { clsx } from 'clsx';
+import Link from 'next/link';
 import AccountConnect from './AccountConnect';
 import { EXTERNAL_LINKS } from '@/utils/external';
 
@@ -28,6 +31,7 @@ function ThemeToggle() {
     </button>
   );
 }
+
 function Header({ ghost }: HeaderProps) {
   const [scrollState, setScrollState] = useState<ScrollState>('at-top');
   const [isMoreOpen, setIsMoreOpen] = useState(false);
@@ -63,10 +67,15 @@ function Header({ ghost }: HeaderProps) {
         <div className="bg-surface/80 sticky top-0 z-50 w-full backdrop-blur-lg">
           <div className="container mx-auto">
             <nav className="bg-surface flex h-[72px] w-full items-center justify-between rounded-md px-4">
-              <div className="flex h-8 items-center justify-start gap-4 px-4 font-zen text-lg dark:text-gray-200">
-                M1 Agent
+              <div className="flex h-8 items-center justify-start px-4">
+                <Link href="/" className="font-zen text-lg dark:text-gray-200 hover:opacity-80 transition-opacity no-underline">
+                  M1 Agent
+                </Link>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
+                <Link href="/runs" className="font-zen text-base text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors no-underline">
+                  History
+                </Link>
                 <Dropdown onOpenChange={setIsMoreOpen} className="rounded-sm">
                   <DropdownTrigger>
                     <button

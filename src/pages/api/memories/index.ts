@@ -15,19 +15,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const { since_timestamp } = req.query;
+    const { type, limit = '20' } = req.query;
 
     // Start building the query
-    let query = supabase.from('memories').select('id, created_at, text, type, sub_type, action_id');
+    let query = supabase.from('memories').select('id, created_at, text, type, sub_type, action_id, activity_id');
 
-    // Add timestamp filter if provided
-    if (since_timestamp && typeof since_timestamp === 'string') {
-      // Use gt (greater than) to get memories after the last timestamp
-      query = query.gt('created_at', since_timestamp);
+    // Add type filter if provided and not 'all'
+    if (type && typeof type === 'string' && type !== 'all') {
+      query = query.eq('type', type);
     }
 
-    // Execute the query with ordering
-    const { data, error } = await query.order('created_at', { ascending: true });
+    // Add limit and order by created_at desc to get latest entries
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .limit(parseInt(limit as string, 10));
 
     if (error) {
       console.error('Supabase error:', error);

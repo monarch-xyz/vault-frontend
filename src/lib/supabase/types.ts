@@ -6,6 +6,8 @@ export interface Memory {
   type: string;
   action_id?: string;
   sub_type?: string;
+  activity_id?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface UserMessage {

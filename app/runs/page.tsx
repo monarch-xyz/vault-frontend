@@ -1,0 +1,126 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Card } from '@nextui-org/react';
+import { Spinner } from '@/components/common/Spinner';
+import { TbReportAnalytics } from 'react-icons/tb';
+import { format } from 'date-fns';
+import Link from 'next/link';
+import { Badge } from '@/components/common/Badge';
+
+const ITEMS_PER_PAGE = 10;
+
+type Run = {
+  id: string;
+  activity_id: string;
+  type: string;
+  sub_type: string;
+  text: string;
+  created_at: string;
+};
+
+export default function RunsPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [runs, setRuns] = useState<Run[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchRuns = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/memories?type=report&page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch runs');
+      }
+      const data = await response.json();
+      setRuns(data.data);
+      setTotalPages(Math.ceil(data.total / ITEMS_PER_PAGE));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch runs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRuns();
+  }, [currentPage]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spinner size={24} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center text-red-500">
+        <p>Failed to load runs</p>
+        <p className="text-sm">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Runs History</h1>
+        <p className="text-gray-500">View all periodic risk checks</p>
+      </div>
+
+      <div className="grid gap-4">
+        {runs.map((run) => (
+          <Link key={run.id} href={`/run/${run.activity_id}`} className="no-underline">
+            <Card className="bg-surface p-6 transition-all hover:scale-[1.01]">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <TbReportAnalytics className="h-5 w-5 text-blue-500" />
+                    <Badge variant="default" size="sm" className="bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                      Periodic Risk Check
+                    </Badge>
+                  </div>
+                  <span className="text-xs text-gray-400">
+                    {format(new Date(run.created_at), 'MMM d, yyyy HH:mm')}
+                  </span>
+                </div>
+                <div className="h-px w-full bg-gray-200 dark:bg-gray-700" />
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">ID: {run.activity_id}</span>
+                </div>
+                <div className="line-clamp-2 text-sm text-gray-700 dark:text-gray-300">
+                  {run.text}
+                </div>
+              </div>
+            </Card>
+          </Link>
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center gap-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="rounded px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="px-4 py-2 text-sm text-gray-500">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="rounded px-4 py-2 text-sm text-gray-500 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </div>
+  );
+} 

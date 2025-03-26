@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Modal, ModalContent, ModalBody } from '@nextui-org/modal';
 import { format } from 'date-fns';
 import moment from 'moment';
@@ -64,7 +64,7 @@ type ActivityEntry = {
   metadata?: Record<string, any>;
 };
 
-function ActivityMessage({ entry }: { entry: ActivityEntry }) {
+export function ActivityMessage({ entry }: { entry: ActivityEntry }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { type, sub_type, text, timestamp, metadata } = entry;
   const activityType = activityTypes[type as keyof typeof activityTypes];
@@ -109,9 +109,9 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         classNames={{
-          base: 'bg-surface rounded-lg font-zen border shadow-lg', // Solid background
-          body: 'p-0', // Remove default padding
-          backdrop: 'bg-black/50', // Darker backdrop
+          base: 'bg-surface rounded-lg font-zen border shadow-lg',
+          body: 'p-0',
+          backdrop: 'bg-black/50',
         }}
         size="2xl"
       >
@@ -134,9 +134,19 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-gray-500">
-                    {format(new Date(timestamp), 'MMM d, yyyy HH:mm:ss')}
-                  </span>
+                  <div className="flex items-center gap-4">
+                    {metadata?.activity_id && (
+                      <a
+                        href={`/run/${metadata.activity_id}`}
+                        className="text-xs text-blue-500 hover:text-blue-600 transition-all hover:scale-105 hover:underline"
+                      >
+                        View Full Run
+                      </a>
+                    )}
+                    <span className="text-xs text-gray-500">
+                      {format(new Date(timestamp), 'MMM d, yyyy HH:mm:ss')}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Content with markdown */}
@@ -160,7 +170,7 @@ function ActivityMessage({ entry }: { entry: ActivityEntry }) {
 }
 
 export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: string }) {
-  const { activities, isLoading: activitiesLoading, error: activitiesError } = useActivities();
+  const { activities, isLoading: activitiesLoading, error: activitiesError } = useActivities(selectedType);
   const {
     reallocations,
     isLoading: reallocationsLoading,
@@ -193,7 +203,10 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
     type: memory.type,
     sub_type: memory.sub_type || '',
     timestamp: memory.created_at,
-    metadata: {},
+    metadata: {
+      activity_id: memory.activity_id,
+      ...memory.metadata,
+    },
   }));
 
   // Combine regular activities and reallocation activities based on selectedType
@@ -217,10 +230,10 @@ export function ActivitiesSection({ selectedType = 'all' }: { selectedType?: str
   // Sort all entries by timestamp
   allEntries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-  // Filter entries based on selectedType
+  // Filter entries based on selectedType and limit to 20 for 'all' type
   const filteredEntries =
     selectedType === 'all'
-      ? allEntries
+      ? allEntries.slice(0, 20)
       : allEntries.filter((entry) => {
           if ('reallocation' in entry) {
             return selectedType === 'action';
