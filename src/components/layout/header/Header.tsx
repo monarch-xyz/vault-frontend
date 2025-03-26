@@ -82,6 +82,7 @@ function Header({ ghost }: HeaderProps) {
                       type="button"
                       className={clsx(
                         'px-2 py-1 text-center font-zen text-base font-normal text-primary',
+                        ' text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200',
                         'border-none transition-all duration-200',
                         'inline-flex items-center gap-1',
                         'focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0',

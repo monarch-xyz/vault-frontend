@@ -138,7 +138,7 @@ export function ActivityMessage({ entry }: { entry: ActivityEntry }) {
                     {metadata?.activity_id && (
                       <a
                         href={`/run/${metadata.activity_id}`}
-                        className="text-xs text-blue-500 hover:text-blue-600 transition-all hover:scale-105 hover:underline"
+                        className="text-xs no-underline text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-all hover:scale-105 hover:underline"
                       >
                         View Full Run
                       </a>
