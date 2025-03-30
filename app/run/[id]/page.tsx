@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardBody, CardHeader, CardFooter } from '@nextui-org/react';
 import { Spinner } from '@/components/common/Spinner';
 import { TbReportAnalytics, TbUser, TbRobot, TbTool, TbAlertCircle } from 'react-icons/tb';
-import { BiBrain, BiTransfer } from 'react-icons/bi';
+import { BiBrain, BiTransfer, BiLinkExternal as BiLinkExternalSmall } from 'react-icons/bi';
 import { HiArrowLeft, HiOutlineExternalLink } from 'react-icons/hi';
 import { format } from 'date-fns';
 import { MarkdownText } from '@/components/MarkdownText';
@@ -13,6 +13,9 @@ import { useRun, Message, ToolCall, ToolFunctionName } from '@/hooks/useRun';
 import { Badge } from '@/components/common/Badge';
 import React, { Fragment } from 'react';
 import { MarketAnalysisToolCall } from '@/components/run/MarketAnalysisToolCall';
+import { UnknownToolCallWithContent } from '@/components/run/UnknownToolCallWithContent';
+import { getExplorerTxURL } from '@/utils/external';
+import { SupportedNetworks } from '@/utils/networks';
 
 const activityTypes = {
   action: {
@@ -45,9 +48,6 @@ const activityTypes = {
 const isTxHash = (str: string): boolean => {
   return typeof str === 'string' && /^0x[a-fA-F0-9]{64}$/.test(str);
 };
-
-// --- Base Sepolia Etherscan URL ---
-const BASE_SEPOLIA_EXPLORER_URL = 'https://sepolia.basescan.org/tx';
 
 export default function RunPage() {
   const params = useParams();
@@ -105,43 +105,46 @@ export default function RunPage() {
       case 'AIMessage':
         const toolCalls = message.additional_kwargs?.tool_calls;
         const hasContent = !!message.content;
-        const hasRenderableToolCall = toolCalls?.some(tc => tc.function.name === ToolFunctionName.MarketAnalysis);
+        const content = message.content;
 
-        if (!hasContent && !hasRenderableToolCall) {
+        if (toolCalls && toolCalls.length > 0) {
+          const hasOnlyKnownTools = toolCalls.every(tc => 
+            tc.function.name === ToolFunctionName.MarketAnalysis
+          );
+
+          if (hasOnlyKnownTools) {
+            return (
+              <Fragment key={index}>
+                {toolCalls.map((toolCall) => {
+                  switch (toolCall.function.name) {
+                    case ToolFunctionName.MarketAnalysis:
+                      return <MarketAnalysisToolCall key={`tool-${toolCall.id}`} toolCall={toolCall} content={content} />;
+                    default:
+                      return null;
+                  }
+                })}
+              </Fragment>
+            );
+          } else if (hasContent) {
+            return <UnknownToolCallWithContent key={index} toolCalls={toolCalls} content={content!} messageKey={index} />;
+          } else {
+            return null;
+          }
+        } else if (hasContent) {
+          return (
+            <Card key={`${index}-content`} className="border p-4 font-zen bg-purple-50/50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900">
+              <div className="flex items-center gap-2 mb-2">
+                <TbRobot className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <span className="font-semibold">AI Thought Process</span>
+              </div>
+              <div className="text-sm">
+                <MarkdownText text={content || '(No content)'} />
+              </div>
+            </Card>
+          );
+        } else {
           return null;
         }
-
-        return (
-          <Fragment key={index}>
-            {/* Render specific tool calls using dedicated components */}
-            {toolCalls?.map((toolCall: ToolCall) => {
-              switch (toolCall.function.name) {
-                case ToolFunctionName.MarketAnalysis:
-                  return <MarketAnalysisToolCall key={`tool-${toolCall.id}`} toolCall={toolCall} />;
-                // Add cases for other known tool calls here
-                // case ToolFunctionName.AnotherTool:
-                //   return <AnotherToolCallComponent key={`tool-${toolCall.id}`} toolCall={toolCall} />;
-                default:
-                  // Optionally render a placeholder for unknown tool calls
-                  // return <UnknownToolCall key={`tool-${toolCall.id}`} toolCall={toolCall} />;
-                  return null; 
-              }
-            })}
-
-            {/* Render AI Thought Process Content if it exists */} 
-            {hasContent && (
-              <Card key={`${index}-content`} className="border p-4 font-zen bg-purple-50/50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900">
-                <div className="flex items-center gap-2 mb-2">
-                  <TbRobot className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                  <span className="font-semibold">AI Thought Process</span>
-                </div>
-                <div className="text-sm">
-                  <MarkdownText text={message.content || '(No content)'} />
-                </div>
-              </Card>
-            )}
-          </Fragment>
-        );
 
       case 'ToolMessage':
         const contentStr = typeof message.content === 'string' ? message.content : '';
@@ -172,26 +175,31 @@ export default function RunPage() {
         const IconComponent = icon;
 
         return (
-          <Card key={index} className={`border p-4 font-zen ${cardBg} ${cardBorder}`}>
-            <div className="flex items-center gap-2 mb-2">
+          <Card key={index} className={`border font-zen ${cardBg} ${cardBorder} ${isTx ? 'p-0' : 'p-4'}`}>
+            <div className={`flex items-center gap-2 ${isTx ? 'p-4 pb-0' : 'mb-2'}`}>
               <IconComponent className={`h-5 w-5 ${iconColor}`} />
               <span className="font-semibold">{label}</span>
             </div>
-            <div className="text-sm">
-              {isTx ? (
-                <a 
-                  href={`${BASE_SEPOLIA_EXPLORER_URL}/${contentStr}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 font-mono text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 underline break-all"
-                >
-                  {contentStr.substring(0, 6)}...{contentStr.substring(contentStr.length - 4)}
-                  <HiOutlineExternalLink className="h-4 w-4" />
-                </a>
-              ) : (
-                <MarkdownText text={contentStr || '(No content)'} />
-              )}
-            </div>
+            
+            {!isTx && (
+                <div className="text-sm pt-2"> 
+                  <MarkdownText text={contentStr || '(No content)'} />
+                </div>
+            )}
+
+            {isTx && (
+              <CardFooter className="flex justify-end pt-2 pb-3 px-4 border-t border-green-100/50 dark:border-green-900/50">
+                 <Link
+                    href={getExplorerTxURL(contentStr, SupportedNetworks.Base)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-xs text-gray-500 no-underline transition-colors hover:text-gray-700 hover:underline dark:hover:text-gray-300 font-mono"
+                  >
+                    <span>TX: {contentStr.substring(0, 6)}...{contentStr.substring(contentStr.length - 4)}</span>
+                    <BiLinkExternalSmall className="h-3 w-3" /> 
+                  </Link>
+              </CardFooter>
+            )}
           </Card>
         );
 
