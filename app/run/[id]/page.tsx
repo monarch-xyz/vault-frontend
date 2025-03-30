@@ -4,14 +4,15 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardBody, CardHeader, CardFooter } from '@nextui-org/react';
 import { Spinner } from '@/components/common/Spinner';
-import { TbReportAnalytics, TbUser, TbRobot, TbTool, TbAlertCircle, TbZoomQuestion } from 'react-icons/tb';
+import { TbReportAnalytics, TbUser, TbRobot, TbTool, TbAlertCircle } from 'react-icons/tb';
 import { BiBrain, BiTransfer } from 'react-icons/bi';
 import { HiArrowLeft, HiOutlineExternalLink } from 'react-icons/hi';
 import { format } from 'date-fns';
 import { MarkdownText } from '@/components/MarkdownText';
-import { useRun, Message, ToolCall, MarketAnalysisArgs } from '@/hooks/useRun';
+import { useRun, Message, ToolCall, ToolFunctionName } from '@/hooks/useRun';
 import { Badge } from '@/components/common/Badge';
 import React, { Fragment } from 'react';
+import { MarketAnalysisToolCall } from '@/components/run/MarketAnalysisToolCall';
 
 const activityTypes = {
   action: {
@@ -47,17 +48,6 @@ const isTxHash = (str: string): boolean => {
 
 // --- Base Sepolia Etherscan URL ---
 const BASE_SEPOLIA_EXPLORER_URL = 'https://sepolia.basescan.org/tx';
-
-// --- Helper function to safely parse JSON --- 
-const safeJsonParse = <T extends unknown>(jsonString: string | undefined | null): T | null => {
-  if (!jsonString) return null;
-  try {
-    return JSON.parse(jsonString) as T;
-  } catch (e) {
-    console.error("Failed to parse JSON string:", e, "String:", jsonString);
-    return null;
-  }
-};
 
 export default function RunPage() {
   const params = useParams();
@@ -115,50 +105,27 @@ export default function RunPage() {
       case 'AIMessage':
         const toolCalls = message.additional_kwargs?.tool_calls;
         const hasContent = !!message.content;
+        const hasRenderableToolCall = toolCalls?.some(tc => tc.function.name === ToolFunctionName.MarketAnalysis);
 
-        // Render nothing if it has neither content nor tool calls we know how to render
-        const knownToolCall = toolCalls?.some(tc => tc.function.name === 'market_analysis');
-        if (!hasContent && !knownToolCall) {
-            return null; 
+        if (!hasContent && !hasRenderableToolCall) {
+          return null;
         }
 
         return (
-          <Fragment key={index}> 
-            {/* Render Tool Call Details First if they exist */} 
+          <Fragment key={index}>
+            {/* Render specific tool calls using dedicated components */}
             {toolCalls?.map((toolCall: ToolCall) => {
-              if (toolCall.function.name === 'market_analysis') {
-                const args = safeJsonParse<MarketAnalysisArgs>(toolCall.function.arguments);
-                return (
-                  <Card key={`${index}-tool-${toolCall.id}`} className="border p-4 font-zen bg-blue-50/50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900 mb-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <TbZoomQuestion className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <span className="font-semibold">Market Analysis Request</span>
-                    </div>
-                    {args ? (
-                      <div className="space-y-2 text-sm">
-                        {args.reasoning_prompt && (
-                          <div>
-                            <strong className="block text-gray-700 dark:text-gray-300">Prompt:</strong>
-                            <p className="font-mono text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">{args.reasoning_prompt}</p>
-                          </div>
-                        )}
-                        {args.market_or_vault_data && (
-                          <div>
-                            <strong className="block text-gray-700 dark:text-gray-300">Data Provided:</strong>
-                            <p className="font-mono text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">{args.market_or_vault_data}</p>
-                          </div>
-                        )}
-                        {/* Optionally display activity_id if needed */} 
-                        {/* {args.activity_id && <p>Activity ID: {args.activity_id}</p>} */} 
-                      </div>
-                    ) : (
-                      <p className="text-xs text-red-500">Could not parse arguments for market analysis.</p>
-                    )}
-                  </Card>
-                );
+              switch (toolCall.function.name) {
+                case ToolFunctionName.MarketAnalysis:
+                  return <MarketAnalysisToolCall key={`tool-${toolCall.id}`} toolCall={toolCall} />;
+                // Add cases for other known tool calls here
+                // case ToolFunctionName.AnotherTool:
+                //   return <AnotherToolCallComponent key={`tool-${toolCall.id}`} toolCall={toolCall} />;
+                default:
+                  // Optionally render a placeholder for unknown tool calls
+                  // return <UnknownToolCall key={`tool-${toolCall.id}`} toolCall={toolCall} />;
+                  return null; 
               }
-              // Add rendering for other known tool calls here if needed
-              return null; // Or render a generic placeholder for unknown tool calls
             })}
 
             {/* Render AI Thought Process Content if it exists */} 

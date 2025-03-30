@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import { Memory } from '@/lib/supabase/types';
 
 // --- Tool Call Types ---
-// Structure within additional_kwargs.tool_calls
+// Enum for known tool function names
+export enum ToolFunctionName {
+  MarketAnalysis = 'market_analysis',
+  // Add other known function names here
+  Unknown = 'unknown',
+}
+
 export interface FunctionCall {
-  name: string;
+  name: string; // Should ideally map to ToolFunctionName, but keep string for flexibility
   arguments: string; // JSON string arguments
 }
 
