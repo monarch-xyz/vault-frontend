@@ -1,14 +1,17 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Card } from '@nextui-org/react';
+import Link from 'next/link';
+import { Card, CardBody, CardHeader, CardFooter } from '@nextui-org/react';
 import { Spinner } from '@/components/common/Spinner';
-import { TbReportAnalytics } from 'react-icons/tb';
+import { TbReportAnalytics, TbUser, TbRobot, TbTool, TbAlertCircle, TbZoomQuestion } from 'react-icons/tb';
 import { BiBrain, BiTransfer } from 'react-icons/bi';
+import { HiArrowLeft, HiOutlineExternalLink } from 'react-icons/hi';
 import { format } from 'date-fns';
 import { MarkdownText } from '@/components/MarkdownText';
-import { useRun } from '@/hooks/useRun';
+import { useRun, Message, ToolCall, MarketAnalysisArgs } from '@/hooks/useRun';
 import { Badge } from '@/components/common/Badge';
+import React, { Fragment } from 'react';
 
 const activityTypes = {
   action: {
@@ -37,10 +40,29 @@ const activityTypes = {
   },
 } as const;
 
+// --- Helper Function to check for Tx Hash ---
+const isTxHash = (str: string): boolean => {
+  return typeof str === 'string' && /^0x[a-fA-F0-9]{64}$/.test(str);
+};
+
+// --- Base Sepolia Etherscan URL ---
+const BASE_SEPOLIA_EXPLORER_URL = 'https://sepolia.basescan.org/tx';
+
+// --- Helper function to safely parse JSON --- 
+const safeJsonParse = <T extends unknown>(jsonString: string | undefined | null): T | null => {
+  if (!jsonString) return null;
+  try {
+    return JSON.parse(jsonString) as T;
+  } catch (e) {
+    console.error("Failed to parse JSON string:", e, "String:", jsonString);
+    return null;
+  }
+};
+
 export default function RunPage() {
   const params = useParams();
   const id = params?.id as string;
-  const { run, isLoading, error } = useRun(id);
+  const { activity, isLoading, error } = useRun(id);
 
   if (!id) {
     return (
@@ -58,106 +80,189 @@ export default function RunPage() {
     );
   }
 
-  if (error || !run) {
+  if (error || !activity) {
     return (
       <div className="flex h-full flex-col items-center justify-center text-red-500">
         <p>Failed to load run details</p>
-        <p className="text-sm">{error}</p>
+        <p className="text-sm">{error || 'Activity data not found.'}</p>
       </div>
     );
   }
 
-  const timestamp = run.thoughtProcess[0]?.created_at || run.report?.created_at || run.action?.created_at;
+  const timestamp = activity.createdAt;
+  const triggerDisplay = activity.trigger === 'PERIODIC_CHECK' ? 'Periodic Check' : activity.trigger;
+
+  // --- Function to render individual messages ---
+  const renderMessage = (message: Message, index: number) => {
+    switch (message.type) {
+      case 'HumanMessage':
+        return (
+          <Card key={index} className="border p-0 font-zen bg-yellow-50/50 dark:bg-yellow-950/30 border-yellow-100 dark:border-yellow-900">
+            <details>
+              <summary className="flex cursor-pointer items-center gap-2 p-4">
+                <TbUser className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                <span className="font-semibold">Initial Input (Expand)</span>
+              </summary>
+              <CardBody className="border-t border-yellow-100 dark:border-yellow-900 p-4">
+                <div className="text-sm">
+                  <MarkdownText text={message.content || '(No content)'} />
+                </div>
+              </CardBody>
+            </details>
+          </Card>
+        );
+
+      case 'AIMessage':
+        const toolCalls = message.additional_kwargs?.tool_calls;
+        const hasContent = !!message.content;
+
+        // Render nothing if it has neither content nor tool calls we know how to render
+        const knownToolCall = toolCalls?.some(tc => tc.function.name === 'market_analysis');
+        if (!hasContent && !knownToolCall) {
+            return null; 
+        }
+
+        return (
+          <Fragment key={index}> 
+            {/* Render Tool Call Details First if they exist */} 
+            {toolCalls?.map((toolCall: ToolCall) => {
+              if (toolCall.function.name === 'market_analysis') {
+                const args = safeJsonParse<MarketAnalysisArgs>(toolCall.function.arguments);
+                return (
+                  <Card key={`${index}-tool-${toolCall.id}`} className="border p-4 font-zen bg-blue-50/50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900 mb-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <TbZoomQuestion className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <span className="font-semibold">Market Analysis Request</span>
+                    </div>
+                    {args ? (
+                      <div className="space-y-2 text-sm">
+                        {args.reasoning_prompt && (
+                          <div>
+                            <strong className="block text-gray-700 dark:text-gray-300">Prompt:</strong>
+                            <p className="font-mono text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">{args.reasoning_prompt}</p>
+                          </div>
+                        )}
+                        {args.market_or_vault_data && (
+                          <div>
+                            <strong className="block text-gray-700 dark:text-gray-300">Data Provided:</strong>
+                            <p className="font-mono text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">{args.market_or_vault_data}</p>
+                          </div>
+                        )}
+                        {/* Optionally display activity_id if needed */} 
+                        {/* {args.activity_id && <p>Activity ID: {args.activity_id}</p>} */} 
+                      </div>
+                    ) : (
+                      <p className="text-xs text-red-500">Could not parse arguments for market analysis.</p>
+                    )}
+                  </Card>
+                );
+              }
+              // Add rendering for other known tool calls here if needed
+              return null; // Or render a generic placeholder for unknown tool calls
+            })}
+
+            {/* Render AI Thought Process Content if it exists */} 
+            {hasContent && (
+              <Card key={`${index}-content`} className="border p-4 font-zen bg-purple-50/50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900">
+                <div className="flex items-center gap-2 mb-2">
+                  <TbRobot className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  <span className="font-semibold">AI Thought Process</span>
+                </div>
+                <div className="text-sm">
+                  <MarkdownText text={message.content || '(No content)'} />
+                </div>
+              </Card>
+            )}
+          </Fragment>
+        );
+
+      case 'ToolMessage':
+        const contentStr = typeof message.content === 'string' ? message.content : '';
+        const isTx = isTxHash(contentStr);
+        const isError = contentStr.toLowerCase().includes('error');
+        
+        let cardBg, cardBorder, icon, iconColor, label;
+        if (isTx) {
+          cardBg = 'bg-green-50/50 dark:bg-green-950/30';
+          cardBorder = 'border-green-100 dark:border-green-900';
+          icon = TbTool;
+          iconColor = 'text-green-600 dark:text-green-400';
+          label = 'Transaction Triggered';
+        } else if (isError) {
+          cardBg = 'bg-red-50/50 dark:bg-red-950/30';
+          cardBorder = 'border-red-100 dark:border-red-900';
+          icon = TbAlertCircle;
+          iconColor = 'text-red-600 dark:text-red-400';
+          label = 'Tool Error';
+        } else {
+          cardBg = 'bg-gray-50/50 dark:bg-gray-950/30';
+          cardBorder = 'border-gray-100 dark:border-gray-900';
+          icon = TbTool;
+          iconColor = 'text-gray-600 dark:text-gray-400';
+          label = 'Tool Result';
+        }
+
+        const IconComponent = icon;
+
+        return (
+          <Card key={index} className={`border p-4 font-zen ${cardBg} ${cardBorder}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <IconComponent className={`h-5 w-5 ${iconColor}`} />
+              <span className="font-semibold">{label}</span>
+            </div>
+            <div className="text-sm">
+              {isTx ? (
+                <a 
+                  href={`${BASE_SEPOLIA_EXPLORER_URL}/${contentStr}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-mono text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200 underline break-all"
+                >
+                  {contentStr.substring(0, 6)}...{contentStr.substring(contentStr.length - 4)}
+                  <HiOutlineExternalLink className="h-4 w-4" />
+                </a>
+              ) : (
+                <MarkdownText text={contentStr || '(No content)'} />
+              )}
+            </div>
+          </Card>
+        );
+
+      default:
+        return (
+          <Card key={index} className="border p-4 font-zen bg-gray-50 dark:bg-gray-800">
+            <pre className="text-xs text-gray-500">Unknown message type: {JSON.stringify(message)}</pre>
+          </Card>
+        );
+    }
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pt-20">
       <div className="mb-8">
+        <Link href="/runs" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 no-underline">
+          <HiArrowLeft />
+          Back to Runs
+        </Link>
         <h1 className="text-2xl font-bold font-zen">Run Details</h1>
         {timestamp && (
           <p className="text-gray-500 font-zen">
             {format(new Date(timestamp), 'MMM d, yyyy HH:mm')}
           </p>
         )}
+        <p className="text-sm text-gray-600 dark:text-gray-400 font-zen">
+          Trigger: <span className="font-semibold">{triggerDisplay}</span>
+        </p>
       </div>
 
-      <div className="grid gap-6">
-        {/* Thought Process Section */}
-        {run.thoughtProcess.length > 0 ? (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold font-zen">Thought Process</h2>
-            {run.thoughtProcess.map((activity, index) => {
-              const type = activity.type as keyof typeof activityTypes;
-              const activityType = activityTypes[type];
-              return (
-                <Card 
-                  key={index} 
-                  className={`${activityType.bgColor} ${activityType.borderColor} border p-6 font-zen`}
-                >
-                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                      <activityType.icon className={`h-4 w-4 ${activityType.iconColor}`} />
-                      <Badge variant="default" size="sm" className={activityType.badgeColor}>
-                        {activityType.label}
-                      </Badge>
-                    </div>
-                    <div className={`text-sm ${activityType.bgColor} rounded-lg p-4`}>
-                      <MarkdownText text={activity.text} />
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        ) : null}
-
-        {/* Report Section */}
-        {run.report && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold font-zen">Report</h2>
-            <Card 
-              className={`${activityTypes.report.bgColor} ${activityTypes.report.borderColor} border p-6 font-zen`}
-            >
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-2">
-                  <activityTypes.report.icon className={`h-4 w-4 ${activityTypes.report.iconColor}`} />
-                  <Badge variant="default" size="sm" className={activityTypes.report.badgeColor}>
-                    {activityTypes.report.label}
-                  </Badge>
-                </div>
-                <div className={`text-sm ${activityTypes.report.bgColor} rounded-lg p-4`}>
-                  <MarkdownText text={run.report.text} />
-                </div>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* Action Section */}
-        {run.action && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold font-zen">Action</h2>
-            <Card 
-              className={`${activityTypes.action.bgColor} ${activityTypes.action.borderColor} border p-6 font-zen`}
-            >
-              <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-2">
-                  <activityTypes.action.icon className={`h-4 w-4 ${activityTypes.action.iconColor}`} />
-                  <Badge variant="default" size="sm" className={activityTypes.action.badgeColor}>
-                    {activityTypes.action.label}
-                  </Badge>
-                </div>
-                <div className={`text-sm ${activityTypes.action.bgColor} rounded-lg p-4`}>
-                  <MarkdownText text={run.action.text} />
-                </div>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {/* No Content Message */}
-        {!run.thoughtProcess.length && !run.report && !run.action && (
+      {/* Render the parsed fullHistory */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold font-zen">Run History</h2>
+        {activity.fullHistory && activity.fullHistory.length > 0 ? (
+          activity.fullHistory.map(renderMessage)
+        ) : (
           <div className="flex h-full flex-col items-center justify-center space-y-2 py-8 text-center">
-            <div className="text-sm text-gray-500">No content available for this run</div>
+            <div className="text-sm text-gray-500">No history content available for this run</div>
           </div>
         )}
       </div>
