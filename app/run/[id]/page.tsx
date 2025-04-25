@@ -105,7 +105,9 @@ export default function RunPage() {
       case 'AIMessage':
         const toolCalls = message.additional_kwargs?.tool_calls;
         const hasContent = !!message.content;
-        const content = message.content;
+        const content = Array.isArray(message.content) ? message.content[0].text : message.content;
+
+        console.log('AI Message message', message);
 
         if (toolCalls && toolCalls.length > 0) {
           const hasOnlyKnownTools = toolCalls.every(tc => 
@@ -135,7 +137,7 @@ export default function RunPage() {
             <Card key={`${index}-content`} className="border p-4 font-zen bg-purple-50/50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900">
               <div className="flex items-center gap-2 mb-2">
                 <TbRobot className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                <span className="font-semibold">AI Thought Process</span>
+                <span className="font-semibold">M1 Thought Process</span>
               </div>
               <div className="text-sm">
                 <MarkdownText text={content || '(No content)'} />
